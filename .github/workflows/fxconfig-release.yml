@@ -43,6 +43,7 @@ jobs:
         prefix: "fxconfig-"
         branch: fxConfig
         skipInvalidTags: true
+        maxTagsToFetch: 30
 
     - name: Generate release notes
       id: release_notes
@@ -73,7 +74,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.semver.outputs.next }}
-        name: fxConfig Release ${{ steps.semver.outputs.next }}
+        name: ${{ steps.semver.outputs.next }}
         body: |
           ## fxConfig Changes in ${{ steps.semver.outputs.next }}
           

@@ -43,6 +43,7 @@ jobs:
         prefix: "fxgorm-"
         branch: fxGorm
         skipInvalidTags: true
+        maxTagsToFetch: 100
 
     - name: Generate release notes
       id: release_notes
@@ -73,7 +74,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.semver.outputs.next }}
-        name: fxGorm Release ${{ steps.semver.outputs.next }}
+        name: ${{ steps.semver.outputs.next }}
         body: |
           ## fxGorm Changes in ${{ steps.semver.outputs.next }}
           
