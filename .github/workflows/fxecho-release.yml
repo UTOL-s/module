@@ -40,10 +40,9 @@ jobs:
       uses: ietf-tools/semver-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        prefix: "fxecho-v"
+        prefix: "fxecho-"
         branch: fxEcho
         skipInvalidTags: true
-        bump-each-commit: true
 
     - name: Generate release notes
       id: release_notes
@@ -74,7 +73,7 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.semver.outputs.next }}
-        name: fxEcho Release ${{ steps.semver.outputs.next }}
+        name: ${{ steps.semver.outputs.next }}
         body: |
           ## fxEcho Changes in ${{ steps.semver.outputs.next }}
           

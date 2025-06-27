@@ -5,10 +5,13 @@ This Go module provides fx modules for the Unified Transport Operations League p
 ## Modules
 
 ### fxConfig
-A configuration module using Uber's fx dependency injection framework with Viper for configuration management.
+A configuration module using Uber's fx dependency injection framework with Viper for configuration management. Provides YAML-based configuration with environment variable support and type-safe access methods.
 
 ### fxEcho
-An Echo web framework module for Uber's fx dependency injection.
+An Echo web framework module for Uber's fx dependency injection. Currently under development, this module will provide seamless integration between the Echo web framework and FX dependency injection.
+
+### fxGorm
+A dynamic GORM module that supports multiple database types (PostgreSQL, MySQL, SQLite, SQL Server) with configurable connection pooling, logging, and advanced features. Provides comprehensive database management through dependency injection.
 
 ## Installation
 
@@ -24,6 +27,9 @@ go get github.com/UTOL-s/module/fxConfig
 
 # fxEcho only
 go get github.com/UTOL-s/module/fxEcho
+
+# fxGorm only
+go get github.com/UTOL-s/module/fxGorm
 ```
 
 ## Usage
@@ -36,11 +42,13 @@ import (
     "go.uber.org/fx"
     "github.com/UTOL-s/module/fxConfig"
     "github.com/UTOL-s/module/fxEcho"
+    "github.com/UTOL-s/module/fxGorm"
 )
 
 func main() {
     app := fx.New(
         fxConfig.FxConfig,
+        fxGorm.FxGorm,
         fxEcho.FxEcho,
         // Add your application components here
     )
@@ -64,6 +72,24 @@ func main() {
     )
     app.Run()
 }
+
+// Using fxConfig and fxGorm
+import (
+    "go.uber.org/fx"
+    "github.com/UTOL-s/module/fxConfig"
+    "github.com/UTOL-s/module/fxGorm"
+)
+
+func main() {
+    app := fx.New(
+        fxConfig.FxConfig,
+        fxGorm.FxGorm,
+        fx.Invoke(func(db *gorm.DB) {
+            // Database is ready to use
+        }),
+    )
+    app.Run()
+}
 ```
 
 ## Configuration
@@ -76,12 +102,25 @@ app:
   port: "8080"
 
 database:
+  type: "postgres"
   host: "localhost"
   port: 5432
   user: "postgres"
   password: "password"
   dbname: "database"
   sslmode: "disable"
+  
+  pool:
+    max_idle_conns: 10
+    max_open_conns: 100
+    conn_max_lifetime: 3600
+    conn_max_idle_time: 600
+  
+  log:
+    level: 4
+    slow_threshold: 5000
+    colorful: true
+    ignore_record_not_found_error: true
 ```
 
 Environment variables can be used to override configuration values using the pattern `APP_NAME`, `DATABASE_HOST`, etc.
@@ -99,6 +138,7 @@ go test -v ./...
 # Test specific modules
 go test -v ./fxConfig
 go test -v ./fxEcho
+go test -v ./fxGorm
 ```
 
 ### Building
@@ -109,6 +149,7 @@ go build -v ./...
 # Build specific modules
 go build -v ./fxConfig
 go build -v ./fxEcho
+go build -v ./fxGorm
 ```
 
 ## How to Push Updates to This Go Module
@@ -131,10 +172,15 @@ This repository uses GitHub Actions for continuous integration and delivery, sim
 - **`fxecho-test.yml`** - Tests fxEcho module specifically
 - **`fxecho-release.yml`** - Releases fxEcho module independently
 
+##### fxGorm Module Workflows
+- **`fxgorm-test.yml`** - Tests fxGorm module specifically
+- **`fxgorm-release.yml`** - Releases fxGorm module independently
+
 #### Workflow Triggers
 
 - **fxConfig changes** → Triggers `fxconfig-test.yml` and `fxconfig-release.yml`
 - **fxEcho changes** → Triggers `fxecho-test.yml` and `fxecho-release.yml`
+- **fxGorm changes** → Triggers `fxgorm-test.yml` and `fxgorm-release.yml`
 - **Module-wide changes** → Triggers `test.yml` and `release.yml`
 
 #### Pull Request Workflow
@@ -201,6 +247,7 @@ Each module uses its own versioning scheme with the `ietf-tools/semver-action@v1
 - **Complete Module**: `v1.2.3` (e.g., `v1.0.0`)
 - **fxConfig Module**: `fxconfig-v1.2.3` (e.g., `fxconfig-v1.0.0`)
 - **fxEcho Module**: `fxecho-v1.2.3` (e.g., `fxecho-v1.0.0`)
+- **fxGorm Module**: `fxgorm-v1.2.3` (e.g., `fxgorm-v1.0.0`)
 
 ### Manual Release Process (if needed)
 
@@ -241,19 +288,35 @@ module/
 │       ├── fxconfig-test.yml # fxConfig test workflow
 │       ├── fxconfig-release.yml # fxConfig release workflow
 │       ├── fxecho-test.yml   # fxEcho test workflow
-│       └── fxecho-release.yml # fxEcho release workflow
+│       ├── fxecho-release.yml # fxEcho release workflow
+│       ├── fxgorm-test.yml   # fxGorm test workflow
+│       └── fxgorm-release.yml # fxGorm release workflow
 ├── configs/                  # Configuration files
 │   └── config.yaml.example   # Example configuration
 ├── fxConfig/                 # Configuration module
 │   ├── config.go            # Configuration implementation
 │   ├── config_test.go       # Configuration tests
-│   └── module.go            # fx module definition
-├── fxEcho/                   # Echo module
 │   ├── module.go            # fx module definition
-│   └── module_test.go       # Echo module tests
+│   └── README.md            # Module documentation
+├── fxEcho/                   # Echo web framework module
+│   ├── module.go            # fx module definition
+│   ├── module_test.go       # Echo module tests
+│   └── README.md            # Module documentation
+├── fxGorm/                   # GORM database module
+│   ├── config.go            # Database configuration
+│   ├── database.go          # Database connection logic
+│   ├── pool.go              # Connection pool management
+│   ├── types.go             # Type definitions
+│   ├── module.go            # fx module definition
+│   ├── manager_test.go      # Database manager tests
+│   ├── example_test.go      # Usage examples
+│   ├── README.md            # Module documentation
+│   └── config_test.go       # Configuration tests
 ├── go.mod                    # Go module definition
 ├── go.sum                    # Go module checksums
 ├── CHANGELOG.md              # Version change log
+├── LICENSE                   # Project license
+├── package.json              # Package metadata
 └── README.md                 # Documentation
 ```
 

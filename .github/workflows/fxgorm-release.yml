@@ -1,9 +1,9 @@
-name: Module Release
+name: fxGorm Release
 
 on:
   push:
-    branches: [ main ]
-    paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
+    branches: [ fxGorm ]
+    paths: [ 'fxGorm/**', '.github/workflows/fxgorm-release.yml' ]
 
 jobs:
   release:
@@ -29,35 +29,36 @@ jobs:
     - name: Download dependencies
       run: go mod download
 
-    - name: Run tests
-      run: go test -v ./...
+    - name: Run tests for fxGorm
+      run: go test -v ./fxGorm/...
 
-    - name: Run go vet
-      run: go vet ./...
+    - name: Run go vet on fxGorm
+      run: go vet ./fxGorm/...
 
-    - name: Determine next version
+    - name: Determine next fxGorm version
       id: semver
       uses: ietf-tools/semver-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        # prefix: "v"
-        branch: main
+        prefix: "fxgorm-"
+        branch: fxGorm
         skipInvalidTags: true
+        maxTagsToFetch: 100
 
     - name: Generate release notes
       id: release_notes
       run: |
-        PREVIOUS_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")
+        PREVIOUS_TAG=$(git describe --tags --match "fxgorm-*" --abbrev=0 2>/dev/null || echo "")
         if [ -z "$PREVIOUS_TAG" ]; then
-          COMMIT_HISTORY=$(git log --pretty=format:"- %s" -- . ':!fxConfig' ':!fxEcho')
+          COMMIT_HISTORY=$(git log --pretty=format:"- %s" -- fxGorm/)
         else
-          COMMIT_HISTORY=$(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD -- . ':!fxConfig' ':!fxEcho')
+          COMMIT_HISTORY=$(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD -- fxGorm/)
         fi
         echo "commit_history<<EOF" >> $GITHUB_OUTPUT
         echo "$COMMIT_HISTORY" >> $GITHUB_OUTPUT
         echo "EOF" >> $GITHUB_OUTPUT
 
-    - name: Create module tag
+    - name: Create tag
       id: tag
       run: |
         NEW_TAG=${{ steps.semver.outputs.next }}
@@ -69,29 +70,30 @@ jobs:
         git push origin $NEW_TAG
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
 
-    - name: Create Module Release
+    - name: Create fxGorm Release
       uses: softprops/action-gh-release@v2
       with:
         tag_name: ${{ steps.semver.outputs.next }}
-        name: Module Release ${{ steps.semver.outputs.next }}
+        name: ${{ steps.semver.outputs.next }}
         body: |
-          ## Module Changes in ${{ steps.semver.outputs.next }}
+          ## fxGorm Changes in ${{ steps.semver.outputs.next }}
           
-          This release includes updates to the UTOL module:
-          - Overall module structure improvements
-          - Documentation updates
-          - CI/CD workflow enhancements
+          This release includes updates to the fxGorm module:
+          - Dynamic GORM configuration and connection pooling
+          - Multi-database support (Postgres, MySQL, SQLite, SQL Server)
+          - Modular, maintainable code structure
+          - Dependency injection ready
           
           ### Version Type: ${{ steps.semver.outputs.version-type }}
           ### Previous Version: ${{ steps.semver.outputs.previous-version }}
           
-          ### Commit History (module-wide changes only)
+          ### Commit History (fxGorm only)
           ${{ steps.release_notes.outputs.commit_history }}
         draft: false
         prerelease: false
         token: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Publish Module to Go Package Registry
+    - name: Publish fxGorm to Go Package Registry
       run: |
-        echo "Module published to Go package registry"
-        echo "Available at: github.com/UTOL-s/module@${{ steps.semver.outputs.next }}" 
+        echo "fxGorm module published to Go package registry"
+        echo "Available at: github.com/UTOL-s/module/fxGorm@${{ steps.semver.outputs.next }}" 
