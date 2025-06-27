@@ -40,10 +40,23 @@ jobs:
       uses: ietf-tools/semver-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        # tag-prefix: "v"
+        tag-prefix: "v"
         bump-each-commit: false
         search-commit-body: false
         include-prereleases: false
+
+    - name: Generate release notes
+      id: release_notes
+      run: |
+        PREVIOUS_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")
+        if [ -z "$PREVIOUS_TAG" ]; then
+          COMMIT_HISTORY=$(git log --pretty=format:"- %s" -- . ':!fxConfig' ':!fxEcho')
+        else
+          COMMIT_HISTORY=$(git log --pretty=format:"- %s" $PREVIOUS_TAG..HEAD -- . ':!fxConfig' ':!fxEcho')
+        fi
+        echo "commit_history<<EOF" >> $GITHUB_OUTPUT
+        echo "$COMMIT_HISTORY" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
 
     - name: Create module tag
       id: tag
@@ -58,14 +71,12 @@ jobs:
         echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
 
     - name: Create Module Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v2
       with:
-        tag_name: ${{ steps.semver.outputs.version }}
-        release_name: Module Release ${{ steps.semver.outputs.version }}
+        tag_name: ${{ steps.semver.outputs.next }}
+        name: Module Release ${{ steps.semver.outputs.next }}
         body: |
-          ## Module Changes in ${{ steps.semver.outputs.version }}
+          ## Module Changes in ${{ steps.semver.outputs.next }}
           
           This release includes updates to the UTOL module:
           - Overall module structure improvements
@@ -76,11 +87,12 @@ jobs:
           ### Previous Version: ${{ steps.semver.outputs.previous-version }}
           
           ### Commit History (module-wide changes only)
-          $(git log --pretty=format:"- %s" $(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")..HEAD -- . ':!fxConfig' ':!fxEcho')
+          ${{ steps.release_notes.outputs.commit_history }}
         draft: false
         prerelease: false
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publish Module to Go Package Registry
       run: |
         echo "Module published to Go package registry"
-        echo "Available at: github.com/UTOL-s/module@${{ steps.semver.outputs.version }}" 
+        echo "Available at: github.com/UTOL-s/module@${{ steps.semver.outputs.next }}" 
