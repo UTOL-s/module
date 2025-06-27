@@ -2,10 +2,10 @@ name: Module Test
 
 on:
   pull_request:
-    branches: [ main ]
+    branches: [ ** ]
     paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
   push:
-    branches: [ main ]
+    branches: [ ** ]
     paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
 
 jobs:
