@@ -1,0 +1,206 @@
+name: Release Complete Module
+
+on:
+  push:
+    tags:
+      - 'v*'
+      - '!fxconfig-v*'
+      - '!fxecho-v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+env:
+  GO_VERSION: '1.24.2'
+  MODULE_NAME: 'github.com/UTOL-s/module'
+
+jobs:
+  test:
+    name: Test All Modules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Run all tests
+        run: go test -v ./...
+
+      - name: Run vet
+        run: go vet ./...
+
+      - name: Check formatting
+        run: |
+          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+            echo "Code is not formatted. Please run 'gofmt -s -w .'"
+            exit 1
+          fi
+
+  build:
+    name: Build All Modules
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build all modules
+        run: go build -v ./...
+
+      - name: Verify module
+        run: go mod verify
+
+  release:
+    name: Release Complete Module
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "changelog=Manual release ${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+            if [ -z "$PREVIOUS_TAG" ]; then
+              CHANGELOG=$(git log --oneline --no-merges --pretty=format:"- %s" HEAD)
+            else
+              CHANGELOG=$(git log --oneline --no-merges --pretty=format:"- %s" $PREVIOUS_TAG..HEAD)
+            fi
+            echo "changelog<<EOF" >> $GITHUB_OUTPUT
+            echo "$CHANGELOG" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          release_name: Complete Module Release ${{ steps.version.outputs.version }}
+          body: |
+            ## Complete Module Release ${{ steps.version.outputs.version }}
+            
+            This release includes all fx modules for the Unified Transport Operations League.
+            
+            ### Changes
+            
+            ${{ steps.changelog.outputs.changelog }}
+            
+            ### Installation
+            
+            ```bash
+            go get ${{ env.MODULE_NAME }}@${{ steps.version.outputs.version }}
+            ```
+            
+            ### Available Modules
+            
+            #### fxConfig
+            ```bash
+            go get ${{ env.MODULE_NAME }}/fxConfig@${{ steps.version.outputs.version }}
+            ```
+            
+            #### fxEcho
+            ```bash
+            go get ${{ env.MODULE_NAME }}/fxEcho@${{ steps.version.outputs.version }}
+            ```
+            
+            ### Usage
+            
+            ```go
+            import (
+                "go.uber.org/fx"
+                "${{ env.MODULE_NAME }}/fxConfig"
+                "${{ env.MODULE_NAME }}/fxEcho"
+            )
+            
+            func main() {
+                app := fx.New(
+                    fxConfig.FxConfig,
+                    fxEcho.FxEcho,
+                )
+                app.Run()
+            }
+            ```
+            
+            ### Individual Module Releases
+            
+            For individual module releases, use the specific tags:
+            - fxConfig: `fxconfig-v*`
+            - fxEcho: `fxecho-v*`
+          draft: false
+          prerelease: false
+
+      - name: Publish to Go Module Proxy
+        run: |
+          go get ${{ env.MODULE_NAME }}@${{ steps.version.outputs.version }}
+          go list -m -versions ${{ env.MODULE_NAME }}
+
+  notify:
+    name: Notify
+    runs-on: ubuntu-latest
+    needs: release
+    if: always()
+    steps:
+      - name: Notify success
+        if: needs.release.result == 'success'
+        run: |
+          echo "✅ Release ${{ needs.release.outputs.version }} created successfully!"
+          echo "Module: ${{ env.MODULE_NAME }}"
+          echo "Version: ${{ needs.release.outputs.version }}"
+          
+      - name: Notify failure
+        if: needs.release.result == 'failure'
+        run: |
+          echo "❌ Release failed!"
+          echo "Check the workflow logs for details." 
