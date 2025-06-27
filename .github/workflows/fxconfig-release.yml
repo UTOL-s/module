@@ -43,6 +43,7 @@ jobs:
         prefix: "fxconfig-"
         branch: fxConfig
         skipInvalidTags: true
+        maxTagsToFetch: 30
 
     - name: Generate release notes
       id: release_notes
