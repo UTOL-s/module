@@ -40,7 +40,7 @@ jobs:
       uses: ietf-tools/semver-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        tag-prefix: "fxecho-v"
+        prefix: "fxecho-v"
         branch: fxEcho
         skipInvalidTags: true
         bump-each-commit: true
