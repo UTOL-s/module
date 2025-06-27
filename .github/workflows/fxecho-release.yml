@@ -41,9 +41,9 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag-prefix: "fxecho-v"
-        branch: main
+        branch: fxEcho
         skipInvalidTags: true
-        
+        bump-each-commit: true
 
     - name: Generate release notes
       id: release_notes
