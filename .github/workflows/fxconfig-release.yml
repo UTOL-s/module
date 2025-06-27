@@ -40,7 +40,7 @@ jobs:
       uses: ietf-tools/semver-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        tag-prefix: "fxconfig-v"
+        # tag-prefix: "fxconfig-v"
         bump-each-commit: false
         search-commit-body: false
         include-prereleases: false
