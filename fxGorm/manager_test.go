@@ -21,6 +21,7 @@ func TestDatabaseManager(t *testing.T) {
 	manager := NewDatabaseManager(config)
 	if manager == nil {
 		t.Error("DatabaseManager should not be nil")
+		return
 	}
 
 	if manager.config != config {
