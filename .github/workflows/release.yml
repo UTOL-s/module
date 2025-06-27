@@ -43,6 +43,7 @@ jobs:
         tag-prefix: "v"
         branch: main
         skipInvalidTags: true
+        bump-each-commit: true
 
     - name: Generate release notes
       id: release_notes

@@ -2,7 +2,7 @@ name: fxConfig Release
 
 on:
   push:
-    branches: [ main ]
+    branches: [ fxConfig ]
     paths: [ 'fxConfig/**', '.github/workflows/fxconfig-release.yml' ]
 
 jobs:
@@ -41,8 +41,9 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag-prefix: "fxconfig-v"
-        branch: main
+        branch: fxConfig
         skipInvalidTags: true
+        bump-each-commit: true
 
     - name: Generate release notes
       id: release_notes
