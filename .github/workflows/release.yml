@@ -40,7 +40,7 @@ jobs:
       uses: ietf-tools/semver-action@v1
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        prefix: "v"
+        # prefix: "v"
         branch: main
         skipInvalidTags: true
         bump-each-commit: true
