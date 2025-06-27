@@ -1,12 +1,17 @@
 {
-  "name": "utol-fxconfig-release",
+  "name": "utol-fx-modules",
   "version": "1.0.0",
   "private": true,
-  "description": "Release automation for fxConfig using semantic-release.",
+  "description": "Release automation for UTOL fx modules using semantic-release.",
   "devDependencies": {
     "semantic-release": "^23.0.0",
     "@semantic-release/changelog": "^6.0.0",
     "@semantic-release/git": "^10.0.0",
     "@semantic-release/github": "^9.0.0"
+  },
+  "scripts": {
+    "release:fxconfig": "semantic-release --config .releaserc.fxconfig",
+    "release:fxecho": "semantic-release --config .releaserc.fxecho",
+    "release:complete": "semantic-release --config .releaserc"
   }
 } 

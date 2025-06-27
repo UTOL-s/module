@@ -111,102 +111,99 @@ go build -v ./fxConfig
 go build -v ./fxEcho
 ```
 
-## Continuous Integration
+## How to Push Updates to This Go Module
 
-### Automated Testing
-All GitHub Actions workflows run on:
-- **All branches** - For continuous testing and validation
-- **Pull requests** to main/master - For code review validation
-- **Tags** - For releases
+### CI/CD Process
 
-### Workflow Jobs
-Each workflow includes:
-1. **Test** - Runs tests, vet, and formatting checks
-2. **Build** - Builds the module and verifies it
-3. **Release** - Creates GitHub releases (only on tags or manual dispatch)
+This repository uses GitHub Actions for continuous integration and delivery, similar to the [UTOL-s/stoken](https://github.com/UTOL-s/stoken) repository:
 
-## Releasing
+#### Pull Request Workflow
 
-This project uses automated releases based on [Conventional Commits](https://www.conventionalcommits.org/) and [semantic-release](https://github.com/semantic-release/semantic-release), similar to the [UTOL-s/stoken](https://github.com/UTOL-s/stoken) repository.
+When a pull request is opened against the main branch, the following checks are automatically run:
 
-### Commit Message Conventions
+* Dependency verification
+* Unit tests for all fx modules
+* Code formatting checks
+* Static analysis with go vet
+* go mod tidy verification
 
-Use these prefixes in your commit messages to trigger automatic releases:
+#### Release Workflow
 
-- **`feat:`** - New features (triggers minor version bump)
-- **`fix:`** - Bug fixes (triggers patch version bump)
-- **`perf:`** - Performance improvements (triggers patch version bump)
-- **`BREAKING CHANGE:`** - Breaking changes (triggers major version bump)
+When changes are merged to the main branch, a release workflow is triggered that:
 
-#### Examples:
-```bash
-git commit -m "feat: add new config loader"
-git commit -m "fix: correct environment variable parsing"
-git commit -m "perf: optimize database connection pooling"
-git commit -m "feat: add new middleware
+1. Runs tests to ensure code quality
+2. Determines the next semantic version based on commit history
+3. Creates a new tag and GitHub release
+4. Publishes the module to the Go package registry
 
-BREAKING CHANGE: config structure has changed"
+### Add Prefixes on commit
+
+* feature
+* feat
+* fix
+* bugfix
+* perf
+* refactor
+* test
+* breaking
+* major
+
+```
+Example:
+   feature: additional login
+   feat: add new config loader
+   fix: correct environment variable parsing
+   perf: optimize database connection pooling
+   breaking: change config structure
 ```
 
-### Release Process
+### Manual Release Process (if needed)
 
-#### Automatic Releases
-When you push commits to the `main` branch with conventional commit messages:
+If you need to manually release a new version:
 
-1. **Tests run** - All tests and code quality checks are executed
-2. **Version analysis** - semantic-release analyzes commit messages
-3. **Version bump** - Determines the next semantic version
-4. **Tag creation** - Creates a new tag with the appropriate format
-5. **GitHub release** - Creates a GitHub release with changelog
-6. **Go module proxy** - Publishes to the Go module proxy
+1. **Clone the repository** (if you haven't already):  
+   git clone https://github.com/UTOL-s/module.git  
+   cd module
+2. **Make your changes** to the code.
+3. **Update dependencies** if necessary:  
+   go mod tidy
+4. **Commit your changes**:  
+   git add .  
+   git commit -m "Description of your changes"
+5. **Push your changes** to trigger the automated release:  
+   git push origin main
+6. **Verify the new version** after the GitHub Action completes:  
+   go list -m github.com/UTOL-s/module@<new-version>
 
-#### Release Types
+### Best Practices for Go Module Versioning
 
-##### fxConfig Module
-- **Tag format**: `fxconfig-v1.2.3`
-- **Trigger**: Commits affecting `./fxConfig` directory
-- **Installation**: `go get github.com/UTOL-s/module/fxConfig@fxconfig-v1.2.3`
+* Follow Semantic Versioning (SemVer) for your tags.
+* Major version changes (v1 → v2) that include breaking changes should use a different module path (e.g., `/v2` suffix).
+* Include a CHANGELOG.md to document changes between versions.
+* Use go.mod's `replace` directive during local development if needed.
 
-##### fxEcho Module
-- **Tag format**: `fxecho-v1.2.3`
-- **Trigger**: Commits affecting `./fxEcho` directory
-- **Installation**: `go get github.com/UTOL-s/module/fxEcho@fxecho-v1.2.3`
+## Project Structure
 
-##### Complete Module
-- **Tag format**: `v1.2.3`
-- **Trigger**: Any commits to the repository
-- **Installation**: `go get github.com/UTOL-s/module@v1.2.3`
+The module is organized with the following structure:
 
-### Manual Releases (if needed)
-
-If you need to manually release a version:
-
-```bash
-# Create and push a tag
-git tag fxconfig-v1.0.0
-git push origin fxconfig-v1.0.0
 ```
-
-### Version Bumping Rules
-
-- **Major version** (`1.0.0` → `2.0.0`): Breaking changes
-- **Minor version** (`1.0.0` → `1.1.0`): New features
-- **Patch version** (`1.0.0` → `1.0.1`): Bug fixes and performance improvements
-
-### Installation by Version
-
-```bash
-# Complete module
-go get github.com/UTOL-s/module@v1.0.0
-
-# Individual modules
-go get github.com/UTOL-s/module/fxConfig@fxconfig-v1.0.0
-go get github.com/UTOL-s/module/fxEcho@fxecho-v1.0.0
-
-# Latest versions
-go get github.com/UTOL-s/module@latest
-go get github.com/UTOL-s/module/fxConfig@latest
-go get github.com/UTOL-s/module/fxEcho@latest
+module/
+├── .github/                  # GitHub specific files
+│   └── workflows/            # CI/CD workflow definitions
+│       ├── release.yml       # Release workflow
+│       └── test.yml          # Test workflow
+├── configs/                  # Configuration files
+│   └── config.yaml.example   # Example configuration
+├── fxConfig/                 # Configuration module
+│   ├── config.go            # Configuration implementation
+│   ├── config_test.go       # Configuration tests
+│   └── module.go            # fx module definition
+├── fxEcho/                   # Echo module
+│   ├── module.go            # fx module definition
+│   └── module_test.go       # Echo module tests
+├── go.mod                    # Go module definition
+├── go.sum                    # Go module checksums
+└── README.md                 # Documentation
 ```
 
 ## License

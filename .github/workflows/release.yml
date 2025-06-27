@@ -1,63 +1,120 @@
-name: Release Complete Module
+name: Release
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.24.2'
-      - run: go mod download
-      - run: go test -v ./...
-      - run: go vet ./...
-      - run: |
-          if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
-            echo "Code is not formatted. Please run 'gofmt -s -w .'"
-            exit 1
-          fi
-
-  build:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v4
-        with:
-          go-version: '1.24.2'
-      - run: go mod download
-      - run: go build -v ./...
-      - run: go mod verify
-
   release:
-    needs: [test, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '18'
-      - name: Install semantic-release
-        run: npm install -g semantic-release @semantic-release/git @semantic-release/changelog @semantic-release/github
-      - name: Configure Git
-        run: |
-          git config --global user.name 'github-actions[bot]'
-          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx semantic-release --config .releaserc.complete
-      - name: Publish to Go Module Proxy
-        run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0)
-          go get github.com/UTOL-s/module@${LATEST_TAG}
-          go list -m -versions github.com/UTOL-s/module 
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.24.x'
+
+    - name: Verify dependencies
+      run: go mod verify
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests
+      run: |
+        go test -v ./fxConfig/...
+        go test -v ./fxEcho/...
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Determine version
+      id: version
+      run: |
+        # Get the latest tag
+        latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+        echo "Latest tag: $latest_tag"
+        
+        # Get commit messages since last tag
+        commits=$(git log --pretty=format:"%s" $latest_tag..HEAD)
+        echo "Commits since last tag:"
+        echo "$commits"
+        
+        # Determine version bump based on commit prefixes
+        major_bump=false
+        minor_bump=false
+        patch_bump=false
+        
+        while IFS= read -r commit; do
+          if [[ $commit =~ ^(breaking|major): ]]; then
+            major_bump=true
+          elif [[ $commit =~ ^(feature|feat): ]]; then
+            minor_bump=true
+          elif [[ $commit =~ ^(fix|bugfix|perf|refactor|test): ]]; then
+            patch_bump=true
+          fi
+        done <<< "$commits"
+        
+        # Extract version numbers
+        version_parts=(${latest_tag#v})
+        major=${version_parts[0]:-0}
+        minor=${version_parts[1]:-0}
+        patch=${version_parts[2]:-0}
+        
+        # Calculate new version
+        if [ "$major_bump" = true ]; then
+          major=$((major + 1))
+          minor=0
+          patch=0
+        elif [ "$minor_bump" = true ]; then
+          minor=$((minor + 1))
+          patch=0
+        elif [ "$patch_bump" = true ]; then
+          patch=$((patch + 1))
+        else
+          # Default to patch bump if no conventional commits found
+          patch=$((patch + 1))
+        fi
+        
+        new_version="v${major}.${minor}.${patch}"
+        echo "New version: $new_version"
+        echo "version=$new_version" >> $GITHUB_OUTPUT
+
+    - name: Create tag
+      run: |
+        git tag ${{ steps.version.outputs.version }}
+        git push origin ${{ steps.version.outputs.version }}
+
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.version.outputs.version }}
+        release_name: Release ${{ steps.version.outputs.version }}
+        body: |
+          ## Changes in ${{ steps.version.outputs.version }}
+          
+          This release includes updates to the fx modules:
+          - fxConfig: Configuration management module
+          - fxEcho: Echo service module
+          
+          ### Commit History
+          $(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0 2>/dev/null || echo "")..HEAD)
+        draft: false
+        prerelease: false
+
+    - name: Publish to Go Package Registry
+      run: |
+        # The module will be automatically available via go get
+        # after the release is created and the tag is pushed
+        echo "Module published to Go package registry"
+        echo "Available at: github.com/UTOL-s/module@${{ steps.version.outputs.version }}" 

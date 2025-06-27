@@ -80,7 +80,7 @@ func NewConfig() (*Config, error) {
 
 // GetEnv is still available for direct env access
 func GetEnv(key string) string {
-	return viper.GetString(key)
+	return os.Getenv(key)
 }
 
 // NewConfigAccessor returns the config accessor for DI

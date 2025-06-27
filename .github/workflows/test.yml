@@ -1,0 +1,55 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.24.x]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: ${{ matrix.go-version }}
+
+    - name: Verify dependencies
+      run: go mod verify
+
+    - name: Download dependencies
+      run: go mod download
+
+    - name: Run tests for fxConfig module
+      run: go test -v ./fxConfig/...
+
+    - name: Run tests for fxEcho module
+      run: go test -v ./fxEcho/...
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Run go fmt check
+      run: |
+        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
+          echo "The following files are not formatted correctly:"
+          gofmt -s -l .
+          exit 1
+        fi
+
+    - name: Run go mod tidy check
+      run: |
+        go mod tidy
+        if [ -n "$(git status --porcelain)" ]; then
+          echo "go.mod or go.sum is not tidy. Please run 'go mod tidy' and commit changes."
+          git diff
+          exit 1
+        fi 
