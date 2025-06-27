@@ -113,7 +113,14 @@ go build -v ./fxEcho
 
 ## Releasing
 
-This project uses GitHub Actions for automated releases with separate workflows for each module.
+This project uses GitHub Actions for automated releases with separate workflows for each module. All releases use semantic versioning validation via `ietf-tools/semver-action@v1`.
+
+### Semantic Versioning
+
+All version tags must follow the [Semantic Versioning 2.0.0](https://semver.org/) specification:
+- **Major.Minor.Patch** format (e.g., `v1.0.0`, `fxconfig-v2.1.3`)
+- **Pre-release** versions supported (e.g., `v1.0.0-alpha.1`, `fxconfig-v1.0.0-beta.2`)
+- **Build metadata** supported (e.g., `v1.0.0+build.1`)
 
 ### Release Types
 
@@ -162,11 +169,20 @@ git push origin fxecho-v1.0.0
 ### Workflow Features
 
 Each release workflow:
-1. ✅ Runs tests for the specific module
-2. 🔍 Performs code quality checks (vet, formatting)
-3. 🏗️ Builds the module
-4. 🏷️ Creates a GitHub release with changelog
-5. 📦 Publishes to Go module proxy
+1. ✅ **Validates semantic versioning** using `ietf-tools/semver-action@v1`
+2. 🧪 Runs tests for the specific module
+3. 🔍 Performs code quality checks (vet, formatting)
+4. 🏗️ Builds the module
+5. 🏷️ Creates a GitHub release with changelog
+6. 📦 Publishes to Go module proxy
+
+### Version Validation
+
+The `ietf-tools/semver-action@v1` ensures:
+- Proper semantic version format
+- Valid version components (major, minor, patch)
+- Correct pre-release and build metadata syntax
+- Compliance with SemVer 2.0.0 specification
 
 ### Installation by Version
 
@@ -177,6 +193,10 @@ go get github.com/UTOL-s/module@v1.0.0
 # Individual modules
 go get github.com/UTOL-s/module/fxConfig@fxconfig-v1.0.0
 go get github.com/UTOL-s/module/fxEcho@fxecho-v1.0.0
+
+# Pre-release versions
+go get github.com/UTOL-s/module@v1.0.0-alpha.1
+go get github.com/UTOL-s/module/fxConfig@fxconfig-v1.0.0-beta.2
 ```
 
 ## License

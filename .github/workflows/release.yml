@@ -18,9 +18,22 @@ env:
   MODULE_NAME: 'github.com/UTOL-s/module'
 
 jobs:
+  validate-version:
+    name: Validate Semantic Version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate semantic version
+        uses: ietf-tools/semver-action@v1
+        with:
+          version: ${{ github.ref_name }}
+
   test:
     name: Test All Modules
     runs-on: ubuntu-latest
+    needs: validate-version
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,7 +94,7 @@ jobs:
   release:
     name: Release Complete Module
     runs-on: ubuntu-latest
-    needs: [test, build]
+    needs: [validate-version, test, build]
     permissions:
       contents: write
     steps:
