@@ -43,7 +43,6 @@ jobs:
         prefix: "fxconfig-"
         branch: fxConfig
         skipInvalidTags: true
-        bump-each-commit: true
 
     - name: Generate release notes
       id: release_notes
