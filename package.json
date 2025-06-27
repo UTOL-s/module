@@ -1,0 +1,12 @@
+{
+  "name": "utol-fxconfig-release",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Release automation for fxConfig using semantic-release.",
+  "devDependencies": {
+    "semantic-release": "^23.0.0",
+    "@semantic-release/changelog": "^6.0.0",
+    "@semantic-release/git": "^10.0.0",
+    "@semantic-release/github": "^9.0.0"
+  }
+} 

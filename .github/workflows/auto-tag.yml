@@ -1,0 +1,221 @@
+name: Auto Tag
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+env:
+  GO_VERSION: '1.24.2'
+
+jobs:
+  auto-tag-fxconfig:
+    name: Auto Tag fxConfig
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Check for fxConfig changes
+        id: check_changes
+        run: |
+          if git log --oneline --since="1 day ago" --grep="^feat\|^fix\|^BREAKING CHANGE" -- ./fxConfig | grep -q .; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate new fxConfig tag
+        id: new_tag
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          # Get current version
+          CURRENT_TAG=$(git describe --tags --match "fxconfig-v*" --abbrev=0 2>/dev/null || echo "fxconfig-v0.0.0")
+          CURRENT_VERSION=${CURRENT_TAG#fxconfig-v}
+          
+          # Parse version components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          # Check commit messages for fxConfig changes
+          COMMITS=$(git log --oneline --since="1 day ago" --grep="^feat\|^fix\|^BREAKING CHANGE" -- ./fxConfig)
+          
+          # Determine version bump
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
+          elif echo "$COMMITS" | grep -q "^feat"; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$((MINOR + 1))
+            NEW_PATCH=0
+          elif echo "$COMMITS" | grep -q "^fix"; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$((PATCH + 1))
+          else
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$PATCH
+          fi
+          
+          NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+          NEW_TAG="fxconfig-v$NEW_VERSION"
+          
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "New fxConfig tag will be: $NEW_TAG"
+
+      - name: Create and push fxConfig tag
+        if: steps.check_changes.outputs.has_changes == 'true' && steps.new_tag.outputs.new_tag != ''
+        run: |
+          git tag ${{ steps.new_tag.outputs.new_tag }}
+          git push origin ${{ steps.new_tag.outputs.new_tag }}
+
+  auto-tag-fxecho:
+    name: Auto Tag fxEcho
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Check for fxEcho changes
+        id: check_changes
+        run: |
+          if git log --oneline --since="1 day ago" --grep="^feat\|^fix\|^BREAKING CHANGE" -- ./fxEcho | grep -q .; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate new fxEcho tag
+        id: new_tag
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          # Get current version
+          CURRENT_TAG=$(git describe --tags --match "fxecho-v*" --abbrev=0 2>/dev/null || echo "fxecho-v0.0.0")
+          CURRENT_VERSION=${CURRENT_TAG#fxecho-v}
+          
+          # Parse version components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          # Check commit messages for fxEcho changes
+          COMMITS=$(git log --oneline --since="1 day ago" --grep="^feat\|^fix\|^BREAKING CHANGE" -- ./fxEcho)
+          
+          # Determine version bump
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
+          elif echo "$COMMITS" | grep -q "^feat"; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$((MINOR + 1))
+            NEW_PATCH=0
+          elif echo "$COMMITS" | grep -q "^fix"; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$((PATCH + 1))
+          else
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$PATCH
+          fi
+          
+          NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+          NEW_TAG="fxecho-v$NEW_VERSION"
+          
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "New fxEcho tag will be: $NEW_TAG"
+
+      - name: Create and push fxEcho tag
+        if: steps.check_changes.outputs.has_changes == 'true' && steps.new_tag.outputs.new_tag != ''
+        run: |
+          git tag ${{ steps.new_tag.outputs.new_tag }}
+          git push origin ${{ steps.new_tag.outputs.new_tag }}
+
+  auto-tag-complete:
+    name: Auto Tag Complete Module
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configure Git
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+
+      - name: Check for overall changes
+        id: check_changes
+        run: |
+          if git log --oneline --since="1 day ago" --grep="^feat\|^fix\|^BREAKING CHANGE" | grep -q .; then
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate new complete module tag
+        id: new_tag
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          # Get current version
+          CURRENT_TAG=$(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "v0.0.0")
+          CURRENT_VERSION=${CURRENT_TAG#v}
+          
+          # Parse version components
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          
+          # Check commit messages for overall changes
+          COMMITS=$(git log --oneline --since="1 day ago" --grep="^feat\|^fix\|^BREAKING CHANGE")
+          
+          # Determine version bump
+          if echo "$COMMITS" | grep -q "BREAKING CHANGE"; then
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_MINOR=0
+            NEW_PATCH=0
+          elif echo "$COMMITS" | grep -q "^feat"; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$((MINOR + 1))
+            NEW_PATCH=0
+          elif echo "$COMMITS" | grep -q "^fix"; then
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$((PATCH + 1))
+          else
+            NEW_MAJOR=$MAJOR
+            NEW_MINOR=$MINOR
+            NEW_PATCH=$PATCH
+          fi
+          
+          NEW_VERSION="$NEW_MAJOR.$NEW_MINOR.$NEW_PATCH"
+          NEW_TAG="v$NEW_VERSION"
+          
+          echo "new_tag=$NEW_TAG" >> $GITHUB_OUTPUT
+          echo "New complete module tag will be: $NEW_TAG"
+
+      - name: Create and push complete module tag
+        if: steps.check_changes.outputs.has_changes == 'true' && steps.new_tag.outputs.new_tag != ''
+        run: |
+          git tag ${{ steps.new_tag.outputs.new_tag }}
+          git push origin ${{ steps.new_tag.outputs.new_tag }} 

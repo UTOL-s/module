@@ -127,76 +127,71 @@ Each workflow includes:
 
 ## Releasing
 
-This project uses GitHub Actions for automated releases with separate workflows for each module. All releases use semantic versioning validation via `ietf-tools/semver-action@v1`.
+This project uses automated releases based on [Conventional Commits](https://www.conventionalcommits.org/) and [semantic-release](https://github.com/semantic-release/semantic-release), similar to the [UTOL-s/stoken](https://github.com/UTOL-s/stoken) repository.
 
-### Semantic Versioning
+### Commit Message Conventions
 
-All version tags must follow the [Semantic Versioning 2.0.0](https://semver.org/) specification:
-- **Major.Minor.Patch** format (e.g., `v1.0.0`, `fxconfig-v2.1.3`)
-- **Pre-release** versions supported (e.g., `v1.0.0-alpha.1`, `fxconfig-v1.0.0-beta.2`)
-- **Build metadata** supported (e.g., `v1.0.0+build.1`)
+Use these prefixes in your commit messages to trigger automatic releases:
 
-### Release Types
+- **`feat:`** - New features (triggers minor version bump)
+- **`fix:`** - Bug fixes (triggers patch version bump)
+- **`perf:`** - Performance improvements (triggers patch version bump)
+- **`BREAKING CHANGE:`** - Breaking changes (triggers major version bump)
 
-#### 1. Complete Module Release
-Releases the entire module with all fx modules included.
-
-**Tag-based Release:**
+#### Examples:
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+git commit -m "feat: add new config loader"
+git commit -m "fix: correct environment variable parsing"
+git commit -m "perf: optimize database connection pooling"
+git commit -m "feat: add new middleware
+
+BREAKING CHANGE: config structure has changed"
 ```
 
-**Manual Release:**
-1. Go to GitHub Actions → "Release Complete Module"
-2. Click "Run workflow"
-3. Enter version (e.g., `v1.0.0`)
+### Release Process
 
-#### 2. fxConfig Module Release
-Releases only the fxConfig module independently.
+#### Automatic Releases
+When you push commits to the `main` branch with conventional commit messages:
 
-**Tag-based Release:**
+1. **Tests run** - All tests and code quality checks are executed
+2. **Version analysis** - semantic-release analyzes commit messages
+3. **Version bump** - Determines the next semantic version
+4. **Tag creation** - Creates a new tag with the appropriate format
+5. **GitHub release** - Creates a GitHub release with changelog
+6. **Go module proxy** - Publishes to the Go module proxy
+
+#### Release Types
+
+##### fxConfig Module
+- **Tag format**: `fxconfig-v1.2.3`
+- **Trigger**: Commits affecting `./fxConfig` directory
+- **Installation**: `go get github.com/UTOL-s/module/fxConfig@fxconfig-v1.2.3`
+
+##### fxEcho Module
+- **Tag format**: `fxecho-v1.2.3`
+- **Trigger**: Commits affecting `./fxEcho` directory
+- **Installation**: `go get github.com/UTOL-s/module/fxEcho@fxecho-v1.2.3`
+
+##### Complete Module
+- **Tag format**: `v1.2.3`
+- **Trigger**: Any commits to the repository
+- **Installation**: `go get github.com/UTOL-s/module@v1.2.3`
+
+### Manual Releases (if needed)
+
+If you need to manually release a version:
+
 ```bash
+# Create and push a tag
 git tag fxconfig-v1.0.0
 git push origin fxconfig-v1.0.0
 ```
 
-**Manual Release:**
-1. Go to GitHub Actions → "Release fxConfig Module"
-2. Click "Run workflow"
-3. Enter version (e.g., `fxconfig-v1.0.0`)
+### Version Bumping Rules
 
-#### 3. fxEcho Module Release
-Releases only the fxEcho module independently.
-
-**Tag-based Release:**
-```bash
-git tag fxecho-v1.0.0
-git push origin fxecho-v1.0.0
-```
-
-**Manual Release:**
-1. Go to GitHub Actions → "Release fxEcho Module"
-2. Click "Run workflow"
-3. Enter version (e.g., `fxecho-v1.0.0`)
-
-### Workflow Features
-
-Each release workflow:
-1. ✅ **Validates semantic versioning** using `ietf-tools/semver-action@v1` (only on tags)
-2. 🧪 Runs tests for the specific module
-3. 🔍 Performs code quality checks (vet, formatting)
-4. 🏗️ Builds the module
-5. 🏷️ Creates a GitHub release with changelog (only on tags or manual dispatch)
-6. 📦 Publishes to Go module proxy (only on tags or manual dispatch)
-
-### Version Validation
-
-The `ietf-tools/semver-action@v1` ensures:
-- Proper semantic version format
-- Valid version components (major, minor, patch)
-- Correct pre-release and build metadata syntax
-- Compliance with SemVer 2.0.0 specification
+- **Major version** (`1.0.0` → `2.0.0`): Breaking changes
+- **Minor version** (`1.0.0` → `1.1.0`): New features
+- **Patch version** (`1.0.0` → `1.0.1`): Bug fixes and performance improvements
 
 ### Installation by Version
 
@@ -208,9 +203,10 @@ go get github.com/UTOL-s/module@v1.0.0
 go get github.com/UTOL-s/module/fxConfig@fxconfig-v1.0.0
 go get github.com/UTOL-s/module/fxEcho@fxecho-v1.0.0
 
-# Pre-release versions
-go get github.com/UTOL-s/module@v1.0.0-alpha.1
-go get github.com/UTOL-s/module/fxConfig@fxconfig-v1.0.0-beta.2
+# Latest versions
+go get github.com/UTOL-s/module@latest
+go get github.com/UTOL-s/module/fxConfig@latest
+go get github.com/UTOL-s/module/fxEcho@latest
 ```
 
 ## License
