@@ -41,9 +41,8 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag-prefix: "fxconfig-v"
-        bump-each-commit: false
-        search-commit-body: false
-        include-prereleases: false
+        branch: main
+        skipInvalidTags: true
 
     - name: Generate release notes
       id: release_notes
