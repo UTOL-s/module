@@ -1,9 +1,9 @@
-name: Module Release
+name: fxConfig Release
 
 on:
   push:
     branches: [ main ]
-    paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
+    paths: [ 'fxConfig/**', '.github/workflows/fxconfig-release.yml' ]
 
 jobs:
   release:
@@ -29,50 +29,50 @@ jobs:
     - name: Download dependencies
       run: go mod download
 
-    - name: Run tests
-      run: go test -v ./...
+    - name: Run tests for fxConfig
+      run: go test -v ./fxConfig/...
 
-    - name: Run go vet
-      run: go vet ./...
+    - name: Run go vet on fxConfig
+      run: go vet ./fxConfig/...
 
-    - name: Determine next version
+    - name: Determine next fxConfig version
       id: semver
       uses: ietf-tools/semver-action@v1
       with:
-        tag-prefix: "v"
+        tag-prefix: "fxconfig-v"
         bump-each-commit: false
         search-commit-body: false
         include-prereleases: false
 
-    - name: Create module tag
+    - name: Create fxConfig tag
       run: |
         git tag ${{ steps.semver.outputs.version }}
         git push origin ${{ steps.semver.outputs.version }}
 
-    - name: Create Module Release
+    - name: Create fxConfig Release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.semver.outputs.version }}
-        release_name: Module Release ${{ steps.semver.outputs.version }}
+        release_name: fxConfig Release ${{ steps.semver.outputs.version }}
         body: |
-          ## Module Changes in ${{ steps.semver.outputs.version }}
+          ## fxConfig Changes in ${{ steps.semver.outputs.version }}
           
-          This release includes updates to the UTOL module:
-          - Overall module structure improvements
-          - Documentation updates
-          - CI/CD workflow enhancements
+          This release includes updates to the fxConfig module:
+          - Configuration management using Uber's fx framework
+          - Viper-based configuration system
+          - Environment variable support
           
           ### Version Type: ${{ steps.semver.outputs.version-type }}
           ### Previous Version: ${{ steps.semver.outputs.previous-version }}
           
-          ### Commit History (module-wide changes only)
-          $(git log --pretty=format:"- %s" $(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")..HEAD -- . ':!fxConfig' ':!fxEcho')
+          ### Commit History (fxConfig only)
+          $(git log --pretty=format:"- %s" $(git describe --tags --match "fxconfig-*" --abbrev=0 2>/dev/null || echo "")..HEAD -- fxConfig/)
         draft: false
         prerelease: false
 
-    - name: Publish Module to Go Package Registry
+    - name: Publish fxConfig to Go Package Registry
       run: |
-        echo "Module published to Go package registry"
-        echo "Available at: github.com/UTOL-s/module@${{ steps.semver.outputs.version }}" 
+        echo "fxConfig module published to Go package registry"
+        echo "Available at: github.com/UTOL-s/module/fxConfig@${{ steps.semver.outputs.version }}" 

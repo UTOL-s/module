@@ -1,12 +1,12 @@
-name: Module Test
+name: fxConfig Test
 
 on:
   pull_request:
     branches: [ main ]
-    paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
+    paths: [ 'fxConfig/**', '.github/workflows/fxconfig-test.yml' ]
   push:
     branches: [ main ]
-    paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
+    paths: [ 'fxConfig/**', '.github/workflows/fxconfig-test.yml' ]
 
 jobs:
   test:
@@ -30,17 +30,17 @@ jobs:
     - name: Download dependencies
       run: go mod download
 
-    - name: Run tests for all modules
-      run: go test -v ./...
+    - name: Run tests for fxConfig module
+      run: go test -v ./fxConfig/...
 
-    - name: Run go vet
-      run: go vet ./...
+    - name: Run go vet on fxConfig
+      run: go vet ./fxConfig/...
 
-    - name: Run go fmt check
+    - name: Run go fmt check on fxConfig
       run: |
-        if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then
-          echo "The following files are not formatted correctly:"
-          gofmt -s -l .
+        if [ "$(gofmt -s -l ./fxConfig/ | wc -l)" -gt 0 ]; then
+          echo "The following fxConfig files are not formatted correctly:"
+          gofmt -s -l ./fxConfig/
           exit 1
         fi
 

@@ -1,9 +1,9 @@
-name: Module Release
+name: fxEcho Release
 
 on:
   push:
     branches: [ main ]
-    paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
+    paths: [ 'fxEcho/**', '.github/workflows/fxecho-release.yml' ]
 
 jobs:
   release:
@@ -29,50 +29,50 @@ jobs:
     - name: Download dependencies
       run: go mod download
 
-    - name: Run tests
-      run: go test -v ./...
+    - name: Run tests for fxEcho
+      run: go test -v ./fxEcho/...
 
-    - name: Run go vet
-      run: go vet ./...
+    - name: Run go vet on fxEcho
+      run: go vet ./fxEcho/...
 
-    - name: Determine next version
+    - name: Determine next fxEcho version
       id: semver
       uses: ietf-tools/semver-action@v1
       with:
-        tag-prefix: "v"
+        tag-prefix: "fxecho-v"
         bump-each-commit: false
         search-commit-body: false
         include-prereleases: false
 
-    - name: Create module tag
+    - name: Create fxEcho tag
       run: |
         git tag ${{ steps.semver.outputs.version }}
         git push origin ${{ steps.semver.outputs.version }}
 
-    - name: Create Module Release
+    - name: Create fxEcho Release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         tag_name: ${{ steps.semver.outputs.version }}
-        release_name: Module Release ${{ steps.semver.outputs.version }}
+        release_name: fxEcho Release ${{ steps.semver.outputs.version }}
         body: |
-          ## Module Changes in ${{ steps.semver.outputs.version }}
+          ## fxEcho Changes in ${{ steps.semver.outputs.version }}
           
-          This release includes updates to the UTOL module:
-          - Overall module structure improvements
-          - Documentation updates
-          - CI/CD workflow enhancements
+          This release includes updates to the fxEcho module:
+          - Echo web framework integration with Uber's fx
+          - Dependency injection ready architecture
+          - Modular design for easy extension
           
           ### Version Type: ${{ steps.semver.outputs.version-type }}
           ### Previous Version: ${{ steps.semver.outputs.previous-version }}
           
-          ### Commit History (module-wide changes only)
-          $(git log --pretty=format:"- %s" $(git describe --tags --match "v*" --abbrev=0 2>/dev/null || echo "")..HEAD -- . ':!fxConfig' ':!fxEcho')
+          ### Commit History (fxEcho only)
+          $(git log --pretty=format:"- %s" $(git describe --tags --match "fxecho-*" --abbrev=0 2>/dev/null || echo "")..HEAD -- fxEcho/)
         draft: false
         prerelease: false
 
-    - name: Publish Module to Go Package Registry
+    - name: Publish fxEcho to Go Package Registry
       run: |
-        echo "Module published to Go package registry"
-        echo "Available at: github.com/UTOL-s/module@${{ steps.semver.outputs.version }}" 
+        echo "fxEcho module published to Go package registry"
+        echo "Available at: github.com/UTOL-s/module/fxEcho@${{ steps.semver.outputs.version }}" 

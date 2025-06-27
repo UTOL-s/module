@@ -115,47 +115,92 @@ go build -v ./fxEcho
 
 ### CI/CD Process
 
-This repository uses GitHub Actions for continuous integration and delivery, similar to the [UTOL-s/stoken](https://github.com/UTOL-s/stoken) repository:
+This repository uses GitHub Actions for continuous integration and delivery, similar to the [UTOL-s/stoken](https://github.com/UTOL-s/stoken) repository. Each fx module has its own separate workflows for independent testing and releases.
+
+#### GitHub Actions Workflows
+
+##### Module-Level Workflows
+- **`test.yml`** - Tests the overall module structure (excludes fx-specific changes)
+- **`release.yml`** - Releases the complete module (excludes fx-specific changes)
+
+##### fxConfig Module Workflows
+- **`fxconfig-test.yml`** - Tests fxConfig module specifically
+- **`fxconfig-release.yml`** - Releases fxConfig module independently
+
+##### fxEcho Module Workflows
+- **`fxecho-test.yml`** - Tests fxEcho module specifically
+- **`fxecho-release.yml`** - Releases fxEcho module independently
+
+#### Workflow Triggers
+
+- **fxConfig changes** → Triggers `fxconfig-test.yml` and `fxconfig-release.yml`
+- **fxEcho changes** → Triggers `fxecho-test.yml` and `fxecho-release.yml`
+- **Module-wide changes** → Triggers `test.yml` and `release.yml`
 
 #### Pull Request Workflow
 
-When a pull request is opened against the main branch, the following checks are automatically run:
+When a pull request is opened against the main branch, the following checks are automatically run based on what files were changed:
 
 * Dependency verification
-* Unit tests for all fx modules
+* Unit tests for affected modules
 * Code formatting checks
 * Static analysis with go vet
 * go mod tidy verification
 
 #### Release Workflow
 
-When changes are merged to the main branch, a release workflow is triggered that:
+When changes are merged to the main branch, release workflows are triggered based on what was changed:
 
 1. Runs tests to ensure code quality
-2. Determines the next semantic version based on commit history
+2. Uses `ietf-tools/semver-action@v1` to determine the next semantic version based on conventional commits
 3. Creates a new tag and GitHub release
 4. Publishes the module to the Go package registry
 
-### Add Prefixes on commit
+### Semantic Versioning with ietf-tools/semver-action@v1
 
-* feature
-* feat
-* fix
-* bugfix
-* perf
-* refactor
-* test
-* breaking
-* major
+This project uses the `ietf-tools/semver-action@v1` for robust semantic versioning based on [Conventional Commits](https://www.conventionalcommits.org/). The action automatically analyzes commit messages to determine the appropriate version bump.
+
+#### Supported Commit Types
+
+The action supports the following conventional commit types:
+
+- **`feat:`** - New features (triggers minor version bump)
+- **`fix:`** - Bug fixes (triggers patch version bump)
+- **`docs:`** - Documentation changes (triggers patch version bump)
+- **`style:`** - Code style changes (triggers patch version bump)
+- **`refactor:`** - Code refactoring (triggers patch version bump)
+- **`perf:`** - Performance improvements (triggers patch version bump)
+- **`test:`** - Adding or updating tests (triggers patch version bump)
+- **`chore:`** - Maintenance tasks (triggers patch version bump)
+- **`ci:`** - CI/CD changes (triggers patch version bump)
+- **`build:`** - Build system changes (triggers patch version bump)
+- **`BREAKING CHANGE:`** - Breaking changes (triggers major version bump)
+
+#### Commit Message Examples
 
 ```
-Example:
-   feature: additional login
-   feat: add new config loader
-   fix: correct environment variable parsing
-   perf: optimize database connection pooling
-   breaking: change config structure
+feat: add new configuration loader
+fix: correct environment variable parsing
+docs: update README with new examples
+style: format code according to standards
+refactor: restructure configuration loading
+perf: optimize database connection pooling
+test: add unit tests for config validation
+chore: update dependencies
+ci: add new GitHub Actions workflow
+build: update Go version requirement
+feat: add new middleware
+
+BREAKING CHANGE: config structure has changed
 ```
+
+### Versioning Strategy
+
+Each module uses its own versioning scheme with the `ietf-tools/semver-action@v1`:
+
+- **Complete Module**: `v1.2.3` (e.g., `v1.0.0`)
+- **fxConfig Module**: `fxconfig-v1.2.3` (e.g., `fxconfig-v1.0.0`)
+- **fxEcho Module**: `fxecho-v1.2.3` (e.g., `fxecho-v1.0.0`)
 
 ### Manual Release Process (if needed)
 
@@ -167,9 +212,9 @@ If you need to manually release a new version:
 2. **Make your changes** to the code.
 3. **Update dependencies** if necessary:  
    go mod tidy
-4. **Commit your changes**:  
+4. **Commit your changes** using conventional commit format:  
    git add .  
-   git commit -m "Description of your changes"
+   git commit -m "feat: add new feature"
 5. **Push your changes** to trigger the automated release:  
    git push origin main
 6. **Verify the new version** after the GitHub Action completes:  
@@ -178,6 +223,7 @@ If you need to manually release a new version:
 ### Best Practices for Go Module Versioning
 
 * Follow Semantic Versioning (SemVer) for your tags.
+* Use conventional commit messages to enable automatic versioning.
 * Major version changes (v1 → v2) that include breaking changes should use a different module path (e.g., `/v2` suffix).
 * Include a CHANGELOG.md to document changes between versions.
 * Use go.mod's `replace` directive during local development if needed.
@@ -190,8 +236,12 @@ The module is organized with the following structure:
 module/
 ├── .github/                  # GitHub specific files
 │   └── workflows/            # CI/CD workflow definitions
-│       ├── release.yml       # Release workflow
-│       └── test.yml          # Test workflow
+│       ├── test.yml          # Module-level test workflow
+│       ├── release.yml       # Module-level release workflow
+│       ├── fxconfig-test.yml # fxConfig test workflow
+│       ├── fxconfig-release.yml # fxConfig release workflow
+│       ├── fxecho-test.yml   # fxEcho test workflow
+│       └── fxecho-release.yml # fxEcho release workflow
 ├── configs/                  # Configuration files
 │   └── config.yaml.example   # Example configuration
 ├── fxConfig/                 # Configuration module
@@ -203,6 +253,7 @@ module/
 │   └── module_test.go       # Echo module tests
 ├── go.mod                    # Go module definition
 ├── go.sum                    # Go module checksums
+├── CHANGELOG.md              # Version change log
 └── README.md                 # Documentation
 ```
 
