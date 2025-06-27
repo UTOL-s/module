@@ -111,6 +111,20 @@ go build -v ./fxConfig
 go build -v ./fxEcho
 ```
 
+## Continuous Integration
+
+### Automated Testing
+All GitHub Actions workflows run on:
+- **All branches** - For continuous testing and validation
+- **Pull requests** to main/master - For code review validation
+- **Tags** - For releases
+
+### Workflow Jobs
+Each workflow includes:
+1. **Test** - Runs tests, vet, and formatting checks
+2. **Build** - Builds the module and verifies it
+3. **Release** - Creates GitHub releases (only on tags or manual dispatch)
+
 ## Releasing
 
 This project uses GitHub Actions for automated releases with separate workflows for each module. All releases use semantic versioning validation via `ietf-tools/semver-action@v1`.
@@ -169,12 +183,12 @@ git push origin fxecho-v1.0.0
 ### Workflow Features
 
 Each release workflow:
-1. ✅ **Validates semantic versioning** using `ietf-tools/semver-action@v1`
+1. ✅ **Validates semantic versioning** using `ietf-tools/semver-action@v1` (only on tags)
 2. 🧪 Runs tests for the specific module
 3. 🔍 Performs code quality checks (vet, formatting)
 4. 🏗️ Builds the module
-5. 🏷️ Creates a GitHub release with changelog
-6. 📦 Publishes to Go module proxy
+5. 🏷️ Creates a GitHub release with changelog (only on tags or manual dispatch)
+6. 📦 Publishes to Go module proxy (only on tags or manual dispatch)
 
 ### Version Validation
 
