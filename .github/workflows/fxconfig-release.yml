@@ -2,7 +2,7 @@ name: fxConfig Release
 
 on:
   push:
-    branches: [ main ]
+    branches: [ fxConfig ]
     paths: [ 'fxConfig/**', '.github/workflows/fxconfig-release.yml' ]
 
 jobs:

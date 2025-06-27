@@ -2,7 +2,7 @@ name: fxEcho Release
 
 on:
   push:
-    branches: [ main ]
+    branches: [ fxEcho ]
     paths: [ 'fxEcho/**', '.github/workflows/fxecho-release.yml' ]
 
 jobs:
