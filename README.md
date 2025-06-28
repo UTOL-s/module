@@ -1,327 +1,365 @@
-# Unified Transport Operations League - Go Module
+# Unified Transport Operations League (UTOL) Module Collection
 
-This Go module provides fx modules for the Unified Transport Operations League project.
+A comprehensive collection of Go modules for building production-ready applications with dependency injection, HTTP servers, database operations, and authentication.
 
-## Modules
+## 🚀 Quick Start
 
-### fxConfig
-A configuration module using Uber's fx dependency injection framework with Viper for configuration management. Provides YAML-based configuration with environment variable support and type-safe access methods.
+### Running the API REST Example
 
-### fxEcho
-An Echo web framework module for Uber's fx dependency injection. Currently under development, this module will provide seamless integration between the Echo web framework and FX dependency injection.
+The easiest way to run the integrated API REST example is using the provided tools:
 
-### fxGorm
-A dynamic GORM module that supports multiple database types (PostgreSQL, MySQL, SQLite, SQL Server) with configurable connection pooling, logging, and advanced features. Provides comprehensive database management through dependency injection.
-
-## Installation
-
-### Complete Module
+#### Option 1: Using the Runner Script (Recommended)
 ```bash
-go get github.com/UTOL-s/module
+# Run with hot reload (default)
+./run-api.sh
+
+# Run without hot reload
+./run-api.sh run
+
+# Build the application
+./run-api.sh build
+
+# Run tests
+./run-api.sh test
+
+# Show help
+./run-api.sh help
 ```
 
-### Individual Modules
+#### Option 2: Using Make
 ```bash
-# fxConfig only
-go get github.com/UTOL-s/module/fxConfig
+# Run with hot reload
+make dev
 
-# fxEcho only
-go get github.com/UTOL-s/module/fxEcho
+# Run without hot reload
+make api-rest
 
-# fxGorm only
-go get github.com/UTOL-s/module/fxGorm
+# Build the application
+make api-rest-build
+
+# Run tests
+make api-rest-test
+
+# Show all available commands
+make help
 ```
 
-## Usage
-
-### Complete Module
-```go
-package main
-
-import (
-    "go.uber.org/fx"
-    "github.com/UTOL-s/module/fxConfig"
-    "github.com/UTOL-s/module/fxEcho"
-    "github.com/UTOL-s/module/fxGorm"
-)
-
-func main() {
-    app := fx.New(
-        fxConfig.FxConfig,
-        fxGorm.FxGorm,
-        fxEcho.FxEcho,
-        // Add your application components here
-    )
-    
-    app.Run()
-}
-```
-
-### Individual Modules
-```go
-// Using only fxConfig
-import (
-    "go.uber.org/fx"
-    "github.com/UTOL-s/module/fxConfig"
-)
-
-func main() {
-    app := fx.New(
-        fxConfig.FxConfig,
-        // ... other modules
-    )
-    app.Run()
-}
-
-// Using fxConfig and fxGorm
-import (
-    "go.uber.org/fx"
-    "github.com/UTOL-s/module/fxConfig"
-    "github.com/UTOL-s/module/fxGorm"
-)
-
-func main() {
-    app := fx.New(
-        fxConfig.FxConfig,
-        fxGorm.FxGorm,
-        fx.Invoke(func(db *gorm.DB) {
-            // Database is ready to use
-        }),
-    )
-    app.Run()
-}
-```
-
-## Configuration
-
-The fxConfig module expects a `config.yaml` file in the `./configs/` directory:
-
-```yaml
-app:
-  name: "your-app-name"
-  port: "8080"
-
-database:
-  type: "postgres"
-  host: "localhost"
-  port: 5432
-  user: "postgres"
-  password: "password"
-  dbname: "database"
-  sslmode: "disable"
-  
-  pool:
-    max_idle_conns: 10
-    max_open_conns: 100
-    conn_max_lifetime: 3600
-    conn_max_idle_time: 600
-  
-  log:
-    level: 4
-    slow_threshold: 5000
-    colorful: true
-    ignore_record_not_found_error: true
-```
-
-Environment variables can be used to override configuration values using the pattern `APP_NAME`, `DATABASE_HOST`, etc.
-
-## Development
-
-### Prerequisites
-- Go 1.24.2 or later
-
-### Running Tests
+#### Option 3: Direct Commands
 ```bash
-# Test all modules
-go test -v ./...
+# Install Air for hot reloading
+go install github.com/air-verse/air@latest
 
-# Test specific modules
-go test -v ./fxConfig
-go test -v ./fxEcho
-go test -v ./fxGorm
+# Run with Air (hot reload)
+air
+
+# Run without Air
+cd api_rest && go run main.go
 ```
 
-### Building
-```bash
-# Build all modules
-go build -v ./...
-
-# Build specific modules
-go build -v ./fxConfig
-go build -v ./fxEcho
-go build -v ./fxGorm
-```
-
-## How to Push Updates to This Go Module
-
-### CI/CD Process
-
-This repository uses GitHub Actions for continuous integration and delivery, similar to the [UTOL-s/stoken](https://github.com/UTOL-s/stoken) repository. Each fx module has its own separate workflows for independent testing and releases.
-
-#### GitHub Actions Workflows
-
-##### Module-Level Workflows
-- **`test.yml`** - Tests the overall module structure (excludes fx-specific changes)
-- **`release.yml`** - Releases the complete module (excludes fx-specific changes)
-
-##### fxConfig Module Workflows
-- **`fxconfig-test.yml`** - Tests fxConfig module specifically
-- **`fxconfig-release.yml`** - Releases fxConfig module independently
-
-##### fxEcho Module Workflows
-- **`fxecho-test.yml`** - Tests fxEcho module specifically
-- **`fxecho-release.yml`** - Releases fxEcho module independently
-
-##### fxGorm Module Workflows
-- **`fxgorm-test.yml`** - Tests fxGorm module specifically
-- **`fxgorm-release.yml`** - Releases fxGorm module independently
-
-#### Workflow Triggers
-
-- **fxConfig changes** → Triggers `fxconfig-test.yml` and `fxconfig-release.yml`
-- **fxEcho changes** → Triggers `fxecho-test.yml` and `fxecho-release.yml`
-- **fxGorm changes** → Triggers `fxgorm-test.yml` and `fxgorm-release.yml`
-- **Module-wide changes** → Triggers `test.yml` and `release.yml`
-
-#### Pull Request Workflow
-
-When a pull request is opened against the main branch, the following checks are automatically run based on what files were changed:
-
-* Dependency verification
-* Unit tests for affected modules
-* Code formatting checks
-* Static analysis with go vet
-* go mod tidy verification
-
-#### Release Workflow
-
-When changes are merged to the main branch, release workflows are triggered based on what was changed:
-
-1. Runs tests to ensure code quality
-2. Uses `ietf-tools/semver-action@v1` to determine the next semantic version based on conventional commits
-3. Creates a new tag and GitHub release
-4. Publishes the module to the Go package registry
-
-### Semantic Versioning with ietf-tools/semver-action@v1
-
-This project uses the `ietf-tools/semver-action@v1` for robust semantic versioning based on [Conventional Commits](https://www.conventionalcommits.org/). The action automatically analyzes commit messages to determine the appropriate version bump.
-
-#### Supported Commit Types
-
-The action supports the following conventional commit types:
-
-- **`feat:`** - New features (triggers minor version bump)
-- **`fix:`** - Bug fixes (triggers patch version bump)
-- **`docs:`** - Documentation changes (triggers patch version bump)
-- **`style:`** - Code style changes (triggers patch version bump)
-- **`refactor:`** - Code refactoring (triggers patch version bump)
-- **`perf:`** - Performance improvements (triggers patch version bump)
-- **`test:`** - Adding or updating tests (triggers patch version bump)
-- **`chore:`** - Maintenance tasks (triggers patch version bump)
-- **`ci:`** - CI/CD changes (triggers patch version bump)
-- **`build:`** - Build system changes (triggers patch version bump)
-- **`BREAKING CHANGE:`** - Breaking changes (triggers major version bump)
-
-#### Commit Message Examples
-
-```
-feat: add new configuration loader
-fix: correct environment variable parsing
-docs: update README with new examples
-style: format code according to standards
-refactor: restructure configuration loading
-perf: optimize database connection pooling
-test: add unit tests for config validation
-chore: update dependencies
-ci: add new GitHub Actions workflow
-build: update Go version requirement
-feat: add new middleware
-
-BREAKING CHANGE: config structure has changed
-```
-
-### Versioning Strategy
-
-Each module uses its own versioning scheme with the `ietf-tools/semver-action@v1`:
-
-- **Complete Module**: `v1.2.3` (e.g., `v1.0.0`)
-- **fxConfig Module**: `fxconfig-v1.2.3` (e.g., `fxconfig-v1.0.0`)
-- **fxEcho Module**: `fxecho-v1.2.3` (e.g., `fxecho-v1.0.0`)
-- **fxGorm Module**: `fxgorm-v1.2.3` (e.g., `fxgorm-v1.0.0`)
-
-### Manual Release Process (if needed)
-
-If you need to manually release a new version:
-
-1. **Clone the repository** (if you haven't already):  
-   git clone https://github.com/UTOL-s/module.git  
-   cd module
-2. **Make your changes** to the code.
-3. **Update dependencies** if necessary:  
-   go mod tidy
-4. **Commit your changes** using conventional commit format:  
-   git add .  
-   git commit -m "feat: add new feature"
-5. **Push your changes** to trigger the automated release:  
-   git push origin main
-6. **Verify the new version** after the GitHub Action completes:  
-   go list -m github.com/UTOL-s/module@<new-version>
-
-### Best Practices for Go Module Versioning
-
-* Follow Semantic Versioning (SemVer) for your tags.
-* Use conventional commit messages to enable automatic versioning.
-* Major version changes (v1 → v2) that include breaking changes should use a different module path (e.g., `/v2` suffix).
-* Include a CHANGELOG.md to document changes between versions.
-* Use go.mod's `replace` directive during local development if needed.
-
-## Project Structure
-
-The module is organized with the following structure:
+## 📁 Module Structure
 
 ```
 module/
-├── .github/                  # GitHub specific files
-│   └── workflows/            # CI/CD workflow definitions
-│       ├── test.yml          # Module-level test workflow
-│       ├── release.yml       # Module-level release workflow
-│       ├── fxconfig-test.yml # fxConfig test workflow
-│       ├── fxconfig-release.yml # fxConfig release workflow
-│       ├── fxecho-test.yml   # fxEcho test workflow
-│       ├── fxecho-release.yml # fxEcho release workflow
-│       ├── fxgorm-test.yml   # fxGorm test workflow
-│       └── fxgorm-release.yml # fxGorm release workflow
-├── configs/                  # Configuration files
-│   └── config.yaml.example   # Example configuration
-├── fxConfig/                 # Configuration module
-│   ├── config.go            # Configuration implementation
-│   ├── config_test.go       # Configuration tests
-│   ├── module.go            # fx module definition
-│   └── README.md            # Module documentation
-├── fxEcho/                   # Echo web framework module
-│   ├── module.go            # fx module definition
-│   ├── module_test.go       # Echo module tests
-│   └── README.md            # Module documentation
-├── fxGorm/                   # GORM database module
-│   ├── config.go            # Database configuration
-│   ├── database.go          # Database connection logic
-│   ├── pool.go              # Connection pool management
-│   ├── types.go             # Type definitions
-│   ├── module.go            # fx module definition
-│   ├── manager_test.go      # Database manager tests
-│   ├── example_test.go      # Usage examples
-│   ├── README.md            # Module documentation
-│   └── config_test.go       # Configuration tests
-├── go.mod                    # Go module definition
-├── go.sum                    # Go module checksums
-├── CHANGELOG.md              # Version change log
-├── LICENSE                   # Project license
-├── package.json              # Package metadata
-└── README.md                 # Documentation
+├── fxConfig/           # Configuration management with YAML support
+├── fxEcho/             # HTTP server with Echo framework and dependency injection
+├── fxGorm/             # Database operations with GORM ORM
+├── fxSupertoken/       # Authentication and session management with SuperTokens
+├── api_rest/           # Integrated example combining all modules
+├── .air.toml           # Air configuration for hot reloading
+├── Makefile            # Root level Makefile for development tasks
+├── run-api.sh          # Easy-to-use runner script
+└── README.md           # This file
 ```
 
-## License
+## 🔧 Development Tools
 
-This project is licensed under the terms specified in the LICENSE file. 
+### Air - Hot Reloading
+Air provides automatic reloading when files change, making development much faster.
+
+**Installation:**
+```bash
+go install github.com/air-verse/air@latest
+```
+
+**Configuration:**
+- `.air.toml` - Air configuration file (already configured for api_rest)
+- Watches Go files, YAML configs, and templates
+- Automatically rebuilds and restarts on changes
+
+**Usage:**
+```bash
+# Run with Air
+air
+
+# Or use the runner script
+./run-api.sh
+```
+
+### Make Commands
+The root Makefile provides convenient commands for development:
+
+```bash
+# Development
+make dev              # Run api_rest with Air
+make api-rest         # Run api_rest without Air
+make api-rest-dev     # Run api_rest with Air
+make api-rest-build   # Build api_rest
+make api-rest-test    # Test api_rest
+make api-rest-clean   # Clean api_rest
+
+# Utilities
+make install-air      # Install Air
+make fmt              # Format all Go code
+make lint             # Lint all Go code
+make deps             # Install dependencies
+
+# Performance
+make profile          # Run performance profiling
+make benchmark        # Run benchmarks
+make load-test        # Run load tests
+
+# Security
+make security         # Run security scan
+
+# Docker
+make docker-build     # Build Docker image
+make docker-run       # Run Docker container
+```
+
+### Runner Script
+The `run-api.sh` script provides a simple interface for common tasks:
+
+```bash
+# Quick commands
+./run-api.sh          # Run with hot reload (default)
+./run-api.sh dev      # Run with hot reload
+./run-api.sh run      # Run without hot reload
+./run-api.sh build    # Build application
+./run-api.sh test     # Run tests
+./run-api.sh clean    # Clean build artifacts
+./run-api.sh install  # Install Air
+./run-api.sh help     # Show help
+```
+
+## 📋 Available Modules
+
+### fxConfig
+Configuration management with YAML support, environment variables, and hot reloading.
+
+**Features:**
+- YAML configuration files
+- Environment variable support
+- Hot reloading
+- Type-safe configuration access
+
+### fxEcho
+HTTP server with Echo framework and Uber FX dependency injection.
+
+**Features:**
+- Echo web framework integration
+- Dependency injection with Uber FX
+- Middleware support
+- Route management
+- Graceful shutdown
+
+### fxGorm
+Database operations with GORM ORM and connection pooling.
+
+**Features:**
+- GORM ORM integration
+- Connection pooling
+- Multiple database drivers (PostgreSQL, MySQL, SQLite, SQL Server)
+- Migration support
+- Query optimization
+
+### fxSupertoken
+Authentication and session management with SuperTokens.
+
+**Features:**
+- SuperTokens integration
+- Session management
+- Authentication middleware
+- Role-based access control
+
+### api_rest (Integrated Example)
+A complete REST API example that demonstrates how to use all modules together.
+
+**Features:**
+- Complete user management API
+- Authentication with SuperTokens
+- Database operations with GORM
+- Configuration management
+- Health checks
+- Performance optimizations
+- Security features
+
+## 🛠 Development Workflow
+
+### 1. Start Development
+```bash
+# Quick start with hot reload
+./run-api.sh
+
+# Or using make
+make dev
+```
+
+### 2. Make Changes
+Edit any Go files, YAML configs, or templates. Air will automatically detect changes and reload the application.
+
+### 3. Test Your Changes
+```bash
+# Run tests
+./run-api.sh test
+
+# Or
+make api-rest-test
+```
+
+### 4. Build for Production
+```bash
+# Build optimized binary
+./run-api.sh build
+
+# Or
+make api-rest-build
+```
+
+## 🔍 Configuration
+
+### Air Configuration (.air.toml)
+The Air configuration is set up to:
+- Watch the `api_rest` directory
+- Monitor Go files, YAML configs, and templates
+- Exclude temporary and build directories
+- Provide colored output for different operations
+
+### Environment Variables
+```bash
+# Configuration file location
+export CONFIG_FILE=api_rest/configs/config.yaml
+
+# Environment
+export ENVIRONMENT=development
+
+# Log level
+export LOG_LEVEL=debug
+```
+
+## 🚀 Production Deployment
+
+### Docker
+```bash
+# Build Docker image
+make docker-build
+
+# Run Docker container
+make docker-run
+```
+
+### Manual Deployment
+```bash
+# Build for production
+make api-rest-build
+
+# Run the binary
+./api_rest/api_rest_optimized
+```
+
+## 📊 Monitoring and Debugging
+
+### Health Checks
+```bash
+# Health check
+curl http://localhost:8080/health
+
+# Readiness check
+curl http://localhost:8080/health/ready
+
+# Liveness check
+curl http://localhost:8080/health/live
+```
+
+### Performance Profiling
+```bash
+# CPU profiling
+make profile
+
+# Memory profiling
+cd api_rest && make profile-memory
+
+# Benchmarks
+make benchmark
+```
+
+### Load Testing
+```bash
+# Load test
+make load-test
+
+# Stress test
+cd api_rest && make stress-test
+```
+
+## 🤝 Contributing
+
+1. **Fork the repository**
+2. **Create a feature branch**
+3. **Make your changes**
+4. **Test your changes**
+   ```bash
+   make api-rest-test
+   ```
+5. **Submit a pull request**
+
+### Development Guidelines
+- Follow Go best practices
+- Add tests for new features
+- Update documentation
+- Use the provided development tools
+- Run linting and formatting before committing
+
+## 📚 Documentation
+
+- [API REST Example README](api_rest/README.md) - Detailed documentation for the integrated example
+- [Individual Module READMEs](fxConfig/README.md) - Documentation for each module
+- [Configuration Guide](api_rest/configs/config.yaml) - Configuration options and examples
+
+## 🆘 Troubleshooting
+
+### Common Issues
+
+**Air not found:**
+```bash
+# Install Air
+./run-api.sh install
+
+# Or manually
+go install github.com/air-verse/air@latest
+```
+
+**Build errors:**
+```bash
+# Clean and rebuild
+./run-api.sh clean
+./run-api.sh build
+```
+
+**Port already in use:**
+```bash
+# Check what's using the port
+lsof -i :8080
+
+# Kill the process or change the port in config
+```
+
+**Database connection issues:**
+- Check database credentials in `api_rest/configs/config.yaml`
+- Ensure database server is running
+- Verify network connectivity
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
 
 

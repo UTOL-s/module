@@ -1,0 +1,21 @@
+# Server configuration
+server:
+  host: "0.0.0.0"
+  port: "8080"
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 60
+
+# SuperTokens configuration
+supertokens:
+  connection_uri: "your_supertokens_connection_uri"
+  connection_api_key: "your_supertokens_api_key"
+  app_name: "YourApp"
+  api_domain: "http://localhost:8080"
+  website_domain: "http://localhost:3000"
+  api_base_path: "/api/auth"
+  web_base_path: "/api/auth"
+  email:
+    host: "smtp.gmail.com"
+    password: "your_email_password"
+    email: "your_email@gmail.com" 

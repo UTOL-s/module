@@ -1,0 +1,21 @@
+
+  __    _   ___  
+ / /\  | | | |_) 
+/_/--\ |_| |_| \_ v1.60.0, built with Go go1.23.1
+
+watching api_rest
+watching api_rest/configs
+watching api_rest/handlers
+watching api_rest/middleware
+watching api_rest/models
+watching api_rest/providers
+watching api_rest/routes
+!exclude configs
+!exclude fxConfig
+!exclude fxEcho
+!exclude fxGorm
+!exclude fxSupertoken
+!exclude tmp
+building...
+running...
+Process Exit with Code: 1

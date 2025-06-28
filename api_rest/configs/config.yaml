@@ -1,0 +1,178 @@
+# Application configuration
+app:
+  name: "Unified Transport Operations League API"
+  version: "1.0.0"
+  environment: "development"
+  debug: false
+
+# Server configuration (fxEcho)
+server:
+  host: "0.0.0.0"
+  port: "8080"
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 60
+  max_header_bytes: 1048576  # 1MB
+
+# Database configuration (fxGorm)
+database:
+  type: "postgres"  # postgres, mysql, sqlite, sqlserver
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "password"
+  dbname: "utol_api"
+  sslmode: "disable"
+  
+  # Connection pool settings (optimized for performance)
+  pool:
+    max_idle_conns: 25
+    max_open_conns: 100
+    conn_max_lifetime: 3600  # seconds
+    conn_max_idle_time: 600  # seconds
+  
+  # Logging settings
+  log:
+    level: 1  # 0=Silent, 1=Error, 2=Warn, 3=Info, 4=Info+SQL
+    slow_threshold: 5  # seconds
+
+# SuperTokens configuration (fxSupertoken)
+supertokens:
+  connection_uri: "your_supertokens_connection_uri"
+  connection_api_key: "your_supertokens_api_key"
+  app_name: "UTOL API"
+  api_domain: "http://localhost:8080"
+  website_domain: "http://localhost:3000"
+  api_base_path: "/api/auth"
+  web_base_path: "/api/auth"
+  email:
+    host: "smtp.gmail.com"
+    password: "your_email_password"
+    email: "your_email@gmail.com"
+
+# Middleware configuration
+middleware:
+  cors:
+    enabled: true
+    origins: ["*"]
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    headers: ["*"]
+    credentials: true
+    max_age: 86400
+  logger:
+    enabled: true
+    level: "info"
+    format: "json"
+  recovery:
+    enabled: true
+  request_id:
+    enabled: true
+  timing:
+    enabled: true
+  security:
+    enabled: true
+    headers:
+      x_content_type_options: "nosniff"
+      x_frame_options: "DENY"
+      x_xss_protection: "1; mode=block"
+      referrer_policy: "strict-origin-when-cross-origin"
+      content_security_policy: "default-src 'self'"
+  rate_limit:
+    enabled: true
+    requests_per_minute: 100
+    burst: 20
+  compression:
+    enabled: true
+    level: 5
+  cache_control:
+    enabled: true
+    default: "no-cache, no-store, must-revalidate"
+  request_size_limit:
+    enabled: true
+    max_size: "10MB"
+  timeout:
+    enabled: true
+    duration: 30
+
+# Performance settings
+performance:
+  # Database query optimization
+  db:
+    enable_query_cache: true
+    cache_ttl: 300  # 5 minutes
+    batch_size: 100
+  
+  # Response optimization
+  response:
+    enable_compression: true
+    compression_level: 5
+    enable_caching: false
+    cache_ttl: 0
+  
+  # Concurrency settings
+  concurrency:
+    max_goroutines: 1000
+    worker_pool_size: 10
+
+# Security settings
+security:
+  # Rate limiting
+  rate_limit:
+    enabled: true
+    requests_per_minute: 100
+    burst: 20
+  
+  # Request validation
+  validation:
+    max_request_size: "10MB"
+    allowed_content_types: ["application/json", "application/x-www-form-urlencoded"]
+  
+  # CORS settings
+  cors:
+    allowed_origins: ["*"]
+    allowed_methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    allowed_headers: ["*"]
+    allow_credentials: true
+    max_age: 86400
+
+# Monitoring and observability
+monitoring:
+  # Health check settings
+  health:
+    enabled: true
+    endpoint: "/health"
+    readiness_endpoint: "/health/ready"
+    liveness_endpoint: "/health/live"
+  
+  # Metrics settings
+  metrics:
+    enabled: false
+    endpoint: "/metrics"
+    prometheus_enabled: false
+  
+  # Logging settings
+  logging:
+    level: "info"
+    format: "json"
+    output: "stdout"
+    enable_request_logging: true
+    enable_error_logging: true
+    enable_performance_logging: true
+
+# Feature flags
+features:
+  user_management:
+    enabled: true
+    allow_bulk_operations: true
+    enable_search: true
+    enable_filtering: true
+  
+  authentication:
+    enabled: true
+    session_timeout: 3600  # 1 hour
+    refresh_token_enabled: true
+  
+  api_documentation:
+    enabled: true
+    swagger_enabled: true
+    endpoint: "/docs" 
