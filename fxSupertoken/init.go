@@ -1,6 +1,8 @@
 package fxsupertoken
 
 import (
+	"fmt"
+
 	"github.com/supertokens/supertokens-golang/ingredients/emaildelivery"
 	"github.com/supertokens/supertokens-golang/recipe/passwordless"
 	"github.com/supertokens/supertokens-golang/recipe/passwordless/plessmodels"
@@ -10,6 +12,19 @@ import (
 
 // InitSuperTokens initializes SuperTokens with the provided configuration
 func InitSuperTokens(config *SuperTokensConfig) error {
+	// Check if SuperTokens is properly configured
+	if config.ConnectionURI == "" || config.ConnectionURI == "your_supertokens_connection_uri" {
+		fmt.Printf("Warning: SuperTokens connection URI is not configured. SuperTokens authentication will be disabled.\n")
+		config.IsInitialized = false
+		return nil // Don't fail, just skip initialization
+	}
+
+	if config.ConnectionAPIKey == "" || config.ConnectionAPIKey == "your_supertokens_api_key" {
+		fmt.Printf("Warning: SuperTokens API key is not configured. SuperTokens authentication will be disabled.\n")
+		config.IsInitialized = false
+		return nil // Don't fail, just skip initialization
+	}
+
 	supertokens.Init(supertokens.TypeInput{
 		Supertokens: &supertokens.ConnectionInfo{
 			ConnectionURI: config.ConnectionURI,
@@ -58,6 +73,8 @@ func InitSuperTokens(config *SuperTokensConfig) error {
 		},
 	})
 
+	config.IsInitialized = true
+	fmt.Printf("SuperTokens initialized successfully\n")
 	return nil
 }
 

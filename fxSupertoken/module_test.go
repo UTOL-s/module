@@ -38,7 +38,12 @@ func TestMiddlewareRegistry(t *testing.T) {
 
 func TestNewSuperTokensMiddlewareRegistry(t *testing.T) {
 	// Test that middleware registry can be created
-	registry := NewSuperTokensMiddlewareRegistry()
+	config := &SuperTokensConfig{
+		ConnectionURI:    "test-uri",
+		ConnectionAPIKey: "test-key",
+		IsInitialized:    true,
+	}
+	registry := NewSuperTokensMiddlewareRegistry(config)
 
 	assert.NotNil(t, registry)
 	assert.Equal(t, 100, registry.Priority())
@@ -47,7 +52,12 @@ func TestNewSuperTokensMiddlewareRegistry(t *testing.T) {
 
 func TestNewVerifySessionMiddlewareRegistry(t *testing.T) {
 	// Test that session verification middleware registry can be created
-	registry := NewVerifySessionMiddlewareRegistry()
+	config := &SuperTokensConfig{
+		ConnectionURI:    "test-uri",
+		ConnectionAPIKey: "test-key",
+		IsInitialized:    true,
+	}
+	registry := NewVerifySessionMiddlewareRegistry(config)
 
 	assert.NotNil(t, registry)
 	assert.Equal(t, 200, registry.Priority())
@@ -66,7 +76,14 @@ func TestFxModule(t *testing.T) {
 
 func TestAsMiddleware(t *testing.T) {
 	// Test that AsMiddleware function works correctly
-	result := AsMiddleware(NewSuperTokensMiddlewareRegistry)
+	config := &SuperTokensConfig{
+		ConnectionURI:    "test-uri",
+		ConnectionAPIKey: "test-key",
+		IsInitialized:    true,
+	}
+	result := AsMiddleware(func() MiddlewareRegistryIf {
+		return NewSuperTokensMiddlewareRegistry(config)
+	})
 	assert.NotNil(t, result)
 }
 

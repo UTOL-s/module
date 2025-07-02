@@ -3,6 +3,7 @@ package internal
 
 import (
 	"github.com/UTOL-s/module/api_rest/internal/handler"
+	fxConfig "github.com/UTOL-s/module/fxConfig"
 	fxSupertoken "github.com/UTOL-s/module/fxSupertoken"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
@@ -10,27 +11,30 @@ import (
 
 // Router handles route registration
 type Router struct {
-	echo          *echo.Echo
-	logger        *zap.Logger
-	userHandler   *handler.UserHandler
-	authHandler   *handler.AuthHandler
-	healthHandler *handler.HealthHandler
+	echo              *echo.Echo
+	logger            *zap.Logger
+	config            *fxConfig.Config
+	userHandler       *handler.UserHandler
+	healthHandler     *handler.HealthHandler
+	superTokensConfig *fxSupertoken.SuperTokensConfig
 }
 
 // NewRouter creates a new router
 func NewRouter(
 	echo *echo.Echo,
 	logger *zap.Logger,
+	config *fxConfig.Config,
 	userHandler *handler.UserHandler,
-	authHandler *handler.AuthHandler,
 	healthHandler *handler.HealthHandler,
+	superTokensConfig *fxSupertoken.SuperTokensConfig,
 ) *Router {
 	return &Router{
-		echo:          echo,
-		logger:        logger,
-		userHandler:   userHandler,
-		authHandler:   authHandler,
-		healthHandler: healthHandler,
+		echo:              echo,
+		logger:            logger,
+		config:            config,
+		userHandler:       userHandler,
+		healthHandler:     healthHandler,
+		superTokensConfig: superTokensConfig,
 	}
 }
 
@@ -38,6 +42,11 @@ func NewRouter(
 func (r *Router) Register() {
 	// Welcome route
 	r.echo.GET("/", r.welcomeHandler)
+
+	// Apply SuperTokens middleware globally to handle auth endpoints
+	if r.superTokensConfig.IsInitialized {
+		r.echo.Use(fxSupertoken.SuperTokensMiddlewareWrapper())
+	}
 
 	// API routes
 	api := r.echo.Group("/api")
@@ -47,20 +56,14 @@ func (r *Router) Register() {
 	health.GET("", r.healthHandler.HealthCheck)
 	health.GET("/ready", r.healthHandler.ReadinessCheck)
 
-	// Auth routes
-	auth := api.Group("/auth")
-	auth.GET("/status", r.authHandler.AuthStatus)
-	auth.GET("/protected", r.authHandler.ProtectedRoute, fxSupertoken.SupertokenMiddleware)
-	auth.GET("/verify", r.authHandler.VerifySession, fxSupertoken.VerifySession)
-
 	// User routes
 	users := api.Group("/v1/users")
 	users.POST("", r.userHandler.CreateUser)
 	users.GET("", r.userHandler.ListUsers)
 	users.GET("/search", r.userHandler.SearchUsers)
-	users.GET("/:id", r.userHandler.GetUser)
-	users.PUT("/:id", r.userHandler.UpdateUser, fxSupertoken.SupertokenMiddleware)
-	users.DELETE("/:id", r.userHandler.DeleteUser, fxSupertoken.SupertokenMiddleware)
+	users.GET("/:id", r.userHandler.GetUser, fxSupertoken.VerifySession(r.superTokensConfig))
+	users.PUT("/:id", r.userHandler.UpdateUser, fxSupertoken.VerifySession(r.superTokensConfig))
+	users.DELETE("/:id", r.userHandler.DeleteUser, fxSupertoken.SupertokenMiddleware(r.superTokensConfig))
 }
 
 // welcomeHandler handles the welcome route

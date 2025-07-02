@@ -42,8 +42,13 @@ func TestFxSupertokenModule(t *testing.T) {
 
 func TestMiddlewareRegistration(t *testing.T) {
 	// Test that middlewares can be registered correctly
-	superTokensRegistry := NewSuperTokensMiddlewareRegistry()
-	verifySessionRegistry := NewVerifySessionMiddlewareRegistry()
+	config := &SuperTokensConfig{
+		ConnectionURI:    "test-uri",
+		ConnectionAPIKey: "test-key",
+		IsInitialized:    true,
+	}
+	superTokensRegistry := NewSuperTokensMiddlewareRegistry(config)
+	verifySessionRegistry := NewVerifySessionMiddlewareRegistry(config)
 
 	assert.Equal(t, 100, superTokensRegistry.Priority())
 	assert.Equal(t, 200, verifySessionRegistry.Priority())
@@ -87,8 +92,13 @@ func TestConfigDefaults(t *testing.T) {
 
 func TestMiddlewareFunctions(t *testing.T) {
 	// Test that middleware functions return valid Echo middleware functions
-	superTokensMiddleware := NewSuperTokensMiddleware()
-	verifySessionMiddleware := NewVerifySessionMiddleware()
+	config := &SuperTokensConfig{
+		ConnectionURI:    "test-uri",
+		ConnectionAPIKey: "test-key",
+		IsInitialized:    true,
+	}
+	superTokensMiddleware := NewSuperTokensMiddleware(config)
+	verifySessionMiddleware := NewVerifySessionMiddleware(config)
 
 	assert.NotNil(t, superTokensMiddleware)
 	assert.NotNil(t, verifySessionMiddleware)

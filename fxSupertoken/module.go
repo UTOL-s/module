@@ -26,6 +26,7 @@ type SuperTokensConfig struct {
 	AppName          string `mapstructure:"app_name"`
 	APIDomain        string `mapstructure:"api_domain"`
 	WebsiteDomain    string `mapstructure:"website_domain"`
+	IsInitialized    bool   // Track if SuperTokens is properly initialized
 }
 
 // NewSuperTokensConfig creates SuperTokens configuration from fxConfig
@@ -64,13 +65,18 @@ func NewSuperTokensConfig(config *fxConfig.Config) (*SuperTokensConfig, error) {
 }
 
 // NewSuperTokensMiddleware creates the main SuperTokens middleware
-func NewSuperTokensMiddleware() echo.MiddlewareFunc {
-	return SupertokenMiddleware
+func NewSuperTokensMiddleware(config *SuperTokensConfig) echo.MiddlewareFunc {
+	return SupertokenMiddleware(config)
 }
 
 // NewVerifySessionMiddleware creates the session verification middleware
-func NewVerifySessionMiddleware() echo.MiddlewareFunc {
-	return VerifySession
+func NewVerifySessionMiddleware(config *SuperTokensConfig) echo.MiddlewareFunc {
+	return VerifySession(config)
+}
+
+// NewSuperTokensWrapperMiddleware creates the SuperTokens wrapper middleware
+func NewSuperTokensWrapperMiddleware() echo.MiddlewareFunc {
+	return SuperTokensMiddlewareWrapper()
 }
 
 // SuperTokensMiddlewareRegistry implements MiddlewareRegistryIf for SuperTokens middleware
@@ -88,18 +94,26 @@ func (s *SuperTokensMiddlewareRegistry) Middleware() echo.MiddlewareFunc {
 }
 
 // NewSuperTokensMiddlewareRegistry creates a middleware registry for SuperTokens
-func NewSuperTokensMiddlewareRegistry() MiddlewareRegistryIf {
+func NewSuperTokensMiddlewareRegistry(config *SuperTokensConfig) MiddlewareRegistryIf {
 	return &SuperTokensMiddlewareRegistry{
 		priority:   100, // High priority for auth middleware
-		middleware: SupertokenMiddleware,
+		middleware: SupertokenMiddleware(config),
 	}
 }
 
 // NewVerifySessionMiddlewareRegistry creates a middleware registry for session verification
-func NewVerifySessionMiddlewareRegistry() MiddlewareRegistryIf {
+func NewVerifySessionMiddlewareRegistry(config *SuperTokensConfig) MiddlewareRegistryIf {
 	return &SuperTokensMiddlewareRegistry{
 		priority:   200, // Higher priority for session verification
-		middleware: VerifySession,
+		middleware: VerifySession(config),
+	}
+}
+
+// NewSuperTokensWrapperMiddlewareRegistry creates a middleware registry for SuperTokens wrapper
+func NewSuperTokensWrapperMiddlewareRegistry() MiddlewareRegistryIf {
+	return &SuperTokensMiddlewareRegistry{
+		priority:   50, // Medium priority for wrapper middleware
+		middleware: SuperTokensMiddlewareWrapper(),
 	}
 }
 
@@ -122,6 +136,11 @@ func AsVerifySessionMiddleware() any {
 	return AsMiddleware(NewVerifySessionMiddlewareRegistry)
 }
 
+// AsSuperTokensWrapperMiddleware annotates SuperTokens wrapper middleware for fxEcho
+func AsSuperTokensWrapperMiddleware() any {
+	return AsMiddleware(NewSuperTokensWrapperMiddlewareRegistry)
+}
+
 var FxSupertoken = fx.Module(
 	ModuleName,
 	fx.Provide(
@@ -132,6 +151,10 @@ var FxSupertoken = fx.Module(
 		),
 		fx.Annotate(
 			NewVerifySessionMiddlewareRegistry,
+			fx.ResultTags(`group:"middlewares"`),
+		),
+		fx.Annotate(
+			NewSuperTokensWrapperMiddlewareRegistry,
 			fx.ResultTags(`group:"middlewares"`),
 		),
 	),

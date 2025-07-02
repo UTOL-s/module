@@ -58,18 +58,23 @@ func (h *UserHandler) CreateUser(c echo.Context) error {
 
 // GetUser handles user retrieval by ID
 func (h *UserHandler) GetUser(c echo.Context) error {
-	id, err := strconv.ParseUint(c.Param("id"), 10, 32)
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
-	}
+	// id, err := strconv.ParseUint(c.Param("id"), 10, 32)
+	// if err != nil {
+	// 	return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid user ID"})
+	// }
 
-	user, err := h.userService.GetUserByID(c.Request().Context(), uint(id))
-	if err != nil {
-		h.logger.Error("failed to get user", zap.Error(err), zap.Uint64("id", id))
-		return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
-	}
+	// user, err := h.userService.GetUserByID(c.Request().Context(), uint(id))
+	// if err != nil {
+	// 	h.logger.Error("failed to get user", zap.Error(err), zap.Uint64("id", id))
+	// 	return c.JSON(http.StatusNotFound, map[string]string{"error": "User not found"})
+	// }
 
-	return c.JSON(http.StatusOK, user)
+	config := h.config.Accessor.String("supertokens.connection_uri")
+
+	return c.JSON(http.StatusOK, echo.Map{
+		// "user":   user,
+		"config": config,
+	})
 }
 
 // UpdateUser handles user updates
