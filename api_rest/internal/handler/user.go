@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/UTOL-s/module/api_rest/internal/service"
+	fxConfig "github.com/UTOL-s/module/fxConfig"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 )
@@ -14,11 +15,20 @@ import (
 type UserHandler struct {
 	userService *service.UserService
 	logger      *zap.Logger
+	config      *fxConfig.Config
 }
 
 // NewUserHandler creates a new user handler
-func NewUserHandler(userService *service.UserService, logger *zap.Logger) *UserHandler {
-	return &UserHandler{userService: userService, logger: logger}
+func NewUserHandler(
+	userService *service.UserService,
+	logger *zap.Logger,
+	config *fxConfig.Config,
+) *UserHandler {
+	return &UserHandler{
+		userService: userService,
+		logger:      logger,
+		config:      config,
+	}
 }
 
 // CreateUser handles user creation

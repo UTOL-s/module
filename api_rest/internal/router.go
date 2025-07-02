@@ -54,7 +54,7 @@ func (r *Router) Register() {
 	auth.GET("/verify", r.authHandler.VerifySession, fxSupertoken.VerifySession)
 
 	// User routes
-	users := api.Group("/users")
+	users := api.Group("/v1/users")
 	users.POST("", r.userHandler.CreateUser)
 	users.GET("", r.userHandler.ListUsers)
 	users.GET("/search", r.userHandler.SearchUsers)
