@@ -1,0 +1,28 @@
+app:
+  name: "fxEcho Example"
+  port: "8080"
+
+server:
+  host: "0.0.0.0"
+  port: "8080"
+  read_timeout: 30
+  write_timeout: 30
+  idle_timeout: 60
+
+database:
+  host: "localhost"
+  port: 5432
+  user: "postgres"
+  password: "password"
+  dbname: "example_db"
+  sslmode: "disable"
+
+middleware:
+  cors:
+    enabled: true
+    origins: ["*"]
+  logger:
+    enabled: true
+    level: "info"
+  recovery:
+    enabled: true 

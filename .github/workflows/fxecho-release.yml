@@ -43,6 +43,7 @@ jobs:
         prefix: "fxecho-"
         branch: fxEcho
         skipInvalidTags: true
+        maxTagsToFetch: 100
 
     - name: Generate release notes
       id: release_notes
