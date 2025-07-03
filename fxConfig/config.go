@@ -3,9 +3,11 @@ package fxconfig
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 
 	"github.com/spf13/viper"
+	"github.com/subosito/gotenv"
 )
 
 type Config struct {
@@ -42,6 +44,9 @@ func (a *Accessor) Bool(key string) bool {
 func (a *Accessor) Float64(key string) float64 {
 	return viper.GetFloat64(key)
 }
+func (a *Accessor) StringSlice(key string) []string {
+	return viper.GetStringSlice(key)
+}
 func (a *Accessor) AllSettings() map[string]interface{} {
 	return viper.AllSettings()
 }
@@ -52,6 +57,17 @@ func ConfigAccessor() *Accessor {
 }
 
 func NewConfig() (*Config, error) {
+	// Load .env file if it exists
+	envFiles := []string{".env", ".env.local", ".env.development", ".env.production"}
+	for _, envFile := range envFiles {
+		if _, err := os.Stat(envFile); err == nil {
+			if err := gotenv.Load(envFile); err != nil {
+				return nil, fmt.Errorf("error loading %s: %w", envFile, err)
+			}
+			break // Load only the first .env file found
+		}
+	}
+
 	viper.AddConfigPath("./configs")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
@@ -64,7 +80,7 @@ func NewConfig() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-	expanded := os.ExpandEnv(string(data))
+	expanded := expandEnvWithDefaults(string(data))
 	viper.SetConfigType("yaml")
 	if err := viper.ReadConfig(strings.NewReader(expanded)); err != nil {
 		return nil, err
@@ -81,6 +97,36 @@ func NewConfig() (*Config, error) {
 // GetEnv is still available for direct env access
 func GetEnv(key string) string {
 	return os.Getenv(key)
+}
+
+// expandEnvWithDefaults expands environment variables with support for default values
+// Supports syntax like ${VAR:-default} where default is used if VAR is not set
+func expandEnvWithDefaults(s string) string {
+	// Regular expression to match ${VAR:-default} pattern
+	re := regexp.MustCompile(`\$\{([^:}]+)(?::-([^}]+))?\}`)
+
+	return re.ReplaceAllStringFunc(s, func(match string) string {
+		// Extract variable name and default value
+		parts := re.FindStringSubmatch(match)
+		if len(parts) < 2 {
+			return match
+		}
+
+		varName := parts[1]
+		defaultValue := ""
+		if len(parts) > 2 {
+			defaultValue = parts[2]
+		}
+
+		// Get environment variable value
+		envValue := os.Getenv(varName)
+		if envValue != "" {
+			return envValue
+		}
+
+		// Return default value if environment variable is not set
+		return defaultValue
+	})
 }
 
 // NewConfigAccessor returns the config accessor for DI
