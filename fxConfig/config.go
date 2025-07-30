@@ -47,7 +47,7 @@ func (a *Accessor) Float64(key string) float64 {
 func (a *Accessor) StringSlice(key string) []string {
 	return viper.GetStringSlice(key)
 }
-func (a *Accessor) AllSettings() map[string]interface{} {
+func (a *Accessor) AllSettings() map[string]any {
 	return viper.AllSettings()
 }
 
@@ -57,6 +57,9 @@ func ConfigAccessor() *Accessor {
 }
 
 func NewConfig() (*Config, error) {
+	// Reset viper to ensure clean state for each config load
+	viper.Reset()
+
 	// Load .env file if it exists
 	envFiles := []string{".env", ".env.local", ".env.development", ".env.production"}
 	for _, envFile := range envFiles {
@@ -68,11 +71,30 @@ func NewConfig() (*Config, error) {
 		}
 	}
 
+	// Configure viper settings
 	viper.AddConfigPath("./configs")
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
+	// Load relevant OS environment variables into viper
+	// Focus on common config prefixes to avoid loading all system env vars
+	relevantPrefixes := []string{"APP_", "SERVER_", "DB_", "DATABASE_", "SUPERTOKENS_", "CONFIG_"}
+	for _, env := range os.Environ() {
+		pair := strings.SplitN(env, "=", 2)
+		if len(pair) == 2 {
+			envKey := pair[0]
+			// Only load environment variables with relevant prefixes
+			for _, prefix := range relevantPrefixes {
+				if strings.HasPrefix(envKey, prefix) {
+					key := strings.ToLower(strings.ReplaceAll(envKey, "_", "."))
+					viper.Set(key, pair[1])
+					break
+				}
+			}
+		}
+	}
 
 	// Read and expand env variables in config.yaml
 	configFile := "./configs/config.yaml"

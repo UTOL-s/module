@@ -49,6 +49,31 @@ func TestConfigAccessorSingleton(t *testing.T) {
 }
 
 func TestNewConfigWithEnvFile(t *testing.T) {
+	// Store and clean up environment variables that might interfere
+	envVars := []string{
+		"DB_HOST", "DB_PORT", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_SSLMODE",
+		"APP_NAME", "SERVER_PORT", "SUPERTOKENS_CONNECTION_URI", "SUPERTOKENS_CONNECTION_API_KEY",
+	}
+
+	originalValues := make(map[string]string)
+	for _, envVar := range envVars {
+		if val := os.Getenv(envVar); val != "" {
+			originalValues[envVar] = val
+		}
+		os.Unsetenv(envVar)
+	}
+
+	// Restore original values after test
+	defer func() {
+		for _, envVar := range envVars {
+			if originalVal, exists := originalValues[envVar]; exists {
+				os.Setenv(envVar, originalVal)
+			} else {
+				os.Unsetenv(envVar)
+			}
+		}
+	}()
+
 	// Create a temporary .env file
 	envContent := `
 DB_HOST=test-host
@@ -147,9 +172,25 @@ func TestNewConfigWithDefaultValues(t *testing.T) {
 		"SUPERTOKENS_EMAIL_HOST", "SUPERTOKENS_EMAIL_PASSWORD", "SUPERTOKENS_EMAIL",
 	}
 
+	// Store original values and unset them
+	originalValues := make(map[string]string)
 	for _, envVar := range envVars {
+		if val := os.Getenv(envVar); val != "" {
+			originalValues[envVar] = val
+		}
 		os.Unsetenv(envVar)
 	}
+
+	// Restore original values after test
+	defer func() {
+		for _, envVar := range envVars {
+			if originalVal, exists := originalValues[envVar]; exists {
+				os.Setenv(envVar, originalVal)
+			} else {
+				os.Unsetenv(envVar)
+			}
+		}
+	}()
 
 	// Create a temporary config.yaml file with default values
 	configContent := `
