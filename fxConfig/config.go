@@ -47,7 +47,7 @@ func (a *Accessor) Float64(key string) float64 {
 func (a *Accessor) StringSlice(key string) []string {
 	return viper.GetStringSlice(key)
 }
-func (a *Accessor) AllSettings() map[string]interface{} {
+func (a *Accessor) AllSettings() map[string]any {
 	return viper.AllSettings()
 }
 
@@ -65,6 +65,15 @@ func NewConfig() (*Config, error) {
 				return nil, fmt.Errorf("error loading %s: %w", envFile, err)
 			}
 			break // Load only the first .env file found
+		}
+	}
+
+	// Load all OS environment variables into viper
+	for _, env := range os.Environ() {
+		pair := strings.SplitN(env, "=", 2)
+		if len(pair) == 2 {
+			key := strings.ToLower(strings.ReplaceAll(pair[0], "_", "."))
+			viper.Set(key, pair[1])
 		}
 	}
 
