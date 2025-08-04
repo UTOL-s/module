@@ -3,7 +3,7 @@ name: Module Release
 on:
   push:
     branches: [ main ]
-    paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
+    # paths-ignore: [ 'fxConfig/**', 'fxEcho/**' ]
 
 jobs:
   release:

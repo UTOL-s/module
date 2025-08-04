@@ -95,6 +95,7 @@ func NewConfig() (*Config, error) {
 			}
 		}
 	}
+	//
 
 	// Read and expand env variables in config.yaml
 	configFile := "./configs/config.yaml"
