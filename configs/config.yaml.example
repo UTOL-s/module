@@ -17,6 +17,7 @@ database:
     max_open_conns: 100
     conn_max_lifetime: 3600  # seconds
     conn_max_idle_time: 600  # seconds
+    
   
   # Logging configuration
   log:
