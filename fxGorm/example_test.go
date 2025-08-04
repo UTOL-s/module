@@ -8,12 +8,24 @@ import (
 	"gorm.io/gorm"
 )
 
-// ExampleGormConfig demonstrates how to create a GORM configuration
+// ExampleNewGormConfig demonstrates how to create a GORM configuration
 func ExampleNewGormConfig() {
 	// This would typically come from your main config
 	config := &fxconfig.Config{}
 
 	// Create GORM configuration
+	gormConfig := NewGormConfig(config)
+	_ = gormConfig
+}
+
+// ExampleNewGormConfig_withURL demonstrates URL-based configuration
+func ExampleNewGormConfig_withURL() {
+	// Example with URL-based configuration
+	config := &fxconfig.Config{}
+
+	// Simulate URL configuration (this would come from your config file or environment)
+	// config.Database.URL = "postgres://user:password@localhost:5432/mydb?sslmode=disable"
+
 	gormConfig := NewGormConfig(config)
 	_ = gormConfig
 }
