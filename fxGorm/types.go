@@ -20,6 +20,10 @@ const (
 
 // DatabaseConfig holds database-specific configuration
 type DatabaseConfig struct {
+	// Primary configuration - use URL for new implementations
+	URL string `mapstructure:"url"`
+
+	// Legacy configuration - maintained for backward compatibility
 	Type      DatabaseType `mapstructure:"type"`
 	Host      string       `mapstructure:"host"`
 	Port      int          `mapstructure:"port"`

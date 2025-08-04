@@ -2,6 +2,7 @@ package fxgorm
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	fxconfig "github.com/UTOL-s/module/fxConfig"
@@ -12,13 +13,17 @@ import (
 func NewGormConfig(config *fxconfig.Config) *GormConfig {
 	return &GormConfig{
 		Database: DatabaseConfig{
+			// Primary URL-based configuration
+			URL: config.Accessor.String("database.url"),
+
+			// Legacy configuration for backward compatibility
 			Type:      DatabaseType(config.Accessor.String("database.type")),
-			Host:      config.Database.Host,
-			Port:      config.Database.Port,
-			User:      config.Database.User,
-			Password:  config.Database.Password,
-			DBName:    config.Database.DBName,
-			SSLMode:   config.Database.SSLMode,
+			Host:      config.Accessor.String("database.host"),
+			Port:      config.Accessor.Int("database.port"),
+			User:      config.Accessor.String("database.user"),
+			Password:  config.Accessor.String("database.password"),
+			DBName:    config.Accessor.String("database.dbname"),
+			SSLMode:   config.Accessor.String("database.sslmode"),
 			Charset:   config.Accessor.String("database.charset"),
 			ParseTime: config.Accessor.Bool("database.parse_time"),
 			Loc:       config.Accessor.String("database.loc"),
@@ -64,6 +69,36 @@ func (gc *GormConfig) SetDefaults() {
 
 // Validate validates the configuration
 func (gc *GormConfig) Validate() error {
+	// If URL is provided, use URL-based validation
+	if gc.Database.URL != "" {
+		return gc.validateURL()
+	}
+
+	// Fall back to legacy validation
+	return gc.validateLegacy()
+}
+
+// validateURL validates URL-based configuration
+func (gc *GormConfig) validateURL() error {
+	if gc.Database.URL == "" {
+		return fmt.Errorf("database URL is required")
+	}
+
+	// Handle SQLite special case (sqlite:path format)
+	if strings.HasPrefix(gc.Database.URL, "sqlite:") {
+		return nil
+	}
+
+	// Basic URL format validation for other databases
+	if !strings.Contains(gc.Database.URL, "://") {
+		return fmt.Errorf("invalid database URL format: missing protocol")
+	}
+
+	return nil
+}
+
+// validateLegacy validates legacy configuration format
+func (gc *GormConfig) validateLegacy() error {
 	if gc.Database.Type == "" {
 		gc.Database.Type = PostgreSQL // Default to PostgreSQL
 	}

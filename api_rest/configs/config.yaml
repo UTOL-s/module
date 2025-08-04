@@ -16,13 +16,13 @@ server:
 
 # Database configuration (fxGorm)
 database:
-  type: "postgres"  # postgres, mysql, sqlite, sqlserver
-  host: ${DB_HOST:-"localhost"}
-  port: ${DB_PORT:-5432}
-  user: ${DB_USER:-"postgres"}
-  password: ${DB_PASSWORD:-"password"}
-  dbname: ${DB_NAME:-"utol_api"}
-  sslmode: ${DB_SSLMODE:-"disable"}
+  # Database URL - single connection string for all database types
+  # Examples:
+  # PostgreSQL: postgres://user:password@localhost:5432/dbname?sslmode=disable
+  # MySQL: mysql://user:password@localhost:3306/dbname?charset=utf8mb4&parseTime=true&loc=Local
+  # SQLite: sqlite:./data/utol.db
+  # SQL Server: sqlserver://user:password@localhost:1433?database=dbname
+  url: ${DATABASE_URL:-"postgres://postgres:password@localhost:5432/utol_api?sslmode=disable"}
   
   # Connection pool settings (optimized for performance)
   pool:

@@ -3,22 +3,13 @@ app:
   port: "8080"
 
 database:
-  # Database type: postgres, mysql, sqlite, sqlserver
-  type: "postgres"
-  host: "localhost"
-  port: 5432
-  user: "postgres"
-  password: "password"
-  dbname: "utol_db"
-  sslmode: "disable" 
-  
-  # MySQL specific options
-  charset: "utf8mb4"
-  parse_time: true
-  loc: "Local"
-  
-  # SQLite specific options
-  file: "./data/utol.db"
+  # Database URL - single connection string for all database types
+  # Examples:
+  # PostgreSQL: postgres://user:password@localhost:5432/dbname?sslmode=disable
+  # MySQL: mysql://user:password@localhost:3306/dbname?charset=utf8mb4&parseTime=true&loc=Local
+  # SQLite: sqlite:./data/utol.db
+  # SQL Server: sqlserver://user:password@localhost:1433?database=dbname
+  url: "postgres://postgres:password@localhost:5432/utol_db?sslmode=disable"
   
   # Connection pool configuration
   pool:
@@ -26,6 +17,7 @@ database:
     max_open_conns: 100
     conn_max_lifetime: 3600  # seconds
     conn_max_idle_time: 600  # seconds
+    
   
   # Logging configuration
   log:

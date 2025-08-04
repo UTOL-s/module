@@ -11,9 +11,48 @@ A highly configurable and dynamic GORM module for the UTOL module system that su
 - **Debug Mode**: Dry run mode for development and testing
 - **Dependency Injection**: Seamless integration with Uber FX
 
-## Supported Database Types
+## Database Configuration
 
-### PostgreSQL
+### URL-Based Configuration (Recommended)
+
+The module now supports a single database URL for simplified configuration:
+
+```yaml
+database:
+  url: "postgres://postgres:password@localhost:5432/utol_db?sslmode=disable"
+```
+
+#### Supported URL Formats
+
+**PostgreSQL:**
+```yaml
+database:
+  url: "postgres://user:password@localhost:5432/dbname?sslmode=disable"
+```
+
+**MySQL:**
+```yaml
+database:
+  url: "mysql://user:password@localhost:3306/dbname?charset=utf8mb4&parseTime=true&loc=Local"
+```
+
+**SQLite:**
+```yaml
+database:
+  url: "sqlite:./data/utol.db"
+```
+
+**SQL Server:**
+```yaml
+database:
+  url: "sqlserver://user:password@localhost:1433?database=dbname"
+```
+
+### Legacy Configuration (Still Supported)
+
+For backward compatibility, the individual parameter format is still supported:
+
+#### PostgreSQL
 ```yaml
 database:
   type: "postgres"
@@ -25,7 +64,7 @@ database:
   sslmode: "disable"
 ```
 
-### MySQL
+#### MySQL
 ```yaml
 database:
   type: "mysql"
@@ -39,14 +78,14 @@ database:
   loc: "Local"
 ```
 
-### SQLite
+#### SQLite
 ```yaml
 database:
   type: "sqlite"
   file: "./data/utol.db"
 ```
 
-### SQL Server
+#### SQL Server
 ```yaml
 database:
   type: "sqlserver"
@@ -138,7 +177,22 @@ func main() {
 
 ## Environment Variables
 
-All configuration options can be overridden using environment variables:
+### URL-Based Configuration (Recommended)
+
+```bash
+# Single database URL
+export DATABASE_URL=postgres://postgres:password@localhost:5432/utol_db?sslmode=disable
+
+# Pool settings
+export DATABASE_POOL_MAX_IDLE_CONNS=10
+export DATABASE_POOL_MAX_OPEN_CONNS=100
+
+# Logging settings
+export DATABASE_LOG_LEVEL=4
+export DATABASE_LOG_SLOW_THRESHOLD=5000
+```
+
+### Legacy Environment Variables (Still Supported)
 
 ```bash
 # Database type
@@ -192,24 +246,47 @@ The module includes built-in connection testing:
 - Database ping verification
 - Configuration validation
 
-## Migration from Previous Version
+## Migration Guide
 
-If you're upgrading from the previous version, update your configuration:
+### Migrating to URL-Based Configuration
+
+For new projects, we recommend using the URL-based configuration:
 
 ```yaml
-# Old configuration
+# Old configuration (still supported)
 database:
+  type: "postgres"
   host: "localhost"
   port: 5432
-  # ... other settings
+  user: "postgres"
+  password: "password"
+  dbname: "utol_db"
+  sslmode: "disable"
 
-# New configuration
+# New configuration (recommended)
 database:
-  type: "postgres"  # Add this line
-  host: "localhost"
-  port: 5432
-  # ... other settings
+  url: "postgres://postgres:password@localhost:5432/utol_db?sslmode=disable"
 ```
+
+### Environment Variable Migration
+
+```bash
+# Old environment variables (still supported)
+export DATABASE_TYPE=postgres
+export DATABASE_HOST=localhost
+export DATABASE_PORT=5432
+export DATABASE_USER=postgres
+export DATABASE_PASSWORD=password
+export DATABASE_DBNAME=utol_db
+export DATABASE_SSLMODE=disable
+
+# New environment variable (recommended)
+export DATABASE_URL=postgres://postgres:password@localhost:5432/utol_db?sslmode=disable
+```
+
+### Backward Compatibility
+
+The module maintains full backward compatibility. Existing configurations will continue to work without any changes. The URL-based configuration takes precedence when both formats are present.
 
 ## Dependencies
 
